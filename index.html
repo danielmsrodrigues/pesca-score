@@ -1877,6 +1877,11 @@ function renderFooter(vm) {
   return `<footer class="footer">Dados: Open-Meteo (meteorologia, mar e marés) · Fase da lua calculada localmente<br>Score experimental — usa bom senso e prioriza sempre a segurança. Última atualização: ${esc(vm.updatedAt)}</footer>`;
 }
 function render() {
+  // Rede de segurança: o render destrói o DOM do formulário, por isso o que
+  // lá estiver escrito tem de ser guardado antes. Só o faz se quem chamou
+  // ainda não o fez — senão atropelava alterações feitas de propósito
+  // (escolher uma sugestão, remover uma linha de captura).
+  if (st.form && !st._synced) { try { syncForm(); } catch (e) {} }
   let body = "";
   if (st.loading) body = renderLoading();
   else if (st.error && !st.vm) body = `
@@ -1904,6 +1909,7 @@ function render() {
       ${renderFooter(vm)}`;
   }
   app.innerHTML = renderSearch() + body;
+  st._synced = false; // DOM novo: volta a precisar de ser lido antes do próximo render
   attach();
 }
 
@@ -2020,6 +2026,7 @@ function syncForm() { // guarda o que está escrito antes de re-render
     const q = g("cap" + i + "-n"); if (q !== null) c.n = Math.max(1, parseInt(q, 10) || 1);
     const cm = g("cap" + i + "-cm"); if (cm !== null) c.cm = cm === "" ? "" : (parseInt(cm, 10) || "");
   });
+  st._synced = true;
 }
 // Um só handler para todos os steppers, delegado no documento
 function attachSteppers() {
@@ -2114,6 +2121,7 @@ function attachLog() {
     st._calDoc = (e) => {
       if (!st.form || !st.form.calOpen) return;
       if (e.target.closest("#calPop") || e.target.closest("#dAbrir")) return;
+      syncForm();
       st.form.calOpen = false; render();
     };
     document.addEventListener("click", st._calDoc);
@@ -2129,10 +2137,12 @@ function attachLog() {
   if (fl) {
     let t = null;
     fl.addEventListener("input", () => {
-      st.form.local = fl.value;
+      // syncForm() antes de qualquer render: sem isto, escrever o pesqueiro
+      // redesenhava o formulário e repunha as horas no valor por defeito
+      syncForm();
       clearTimeout(t);
       const q = fl.value.trim();
-      if (q.length < 2) { if (st.form.localSug) { st.form.localSug = null; render(); } return; }
+      if (q.length < 2) { if (st.form.localSug) { st.form.localSug = null; render(); reFocus("fLocal"); } return; }
       const fq = fold(q);
       const locais = SPOTS.filter((s) => fold(s[0]).includes(fq)).slice(0, 6)
         .map((s) => ({ name: s[0], lat: s[1], lon: s[2], tipo: s[3], meta: TIPO_LABEL[s[3]] }));
@@ -2140,6 +2150,7 @@ function attachLog() {
       t = setTimeout(() => {
         geocode(q).then((r) => {
           if (!st.form) return;
+          syncForm();
           st.form.localSug = r.slice(0, 6);
           render(); reFocus("fLocal");
         });
