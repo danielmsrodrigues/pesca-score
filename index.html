@@ -280,7 +280,10 @@
   .log-btn.primary { background: var(--accent); color: var(--accent-text); }
   .log-btn.ghost { border-color: var(--border); background: none; color: var(--text-dim); font-weight: 600; }
   .log-form { display: flex; flex-direction: column; gap: 11px; background: var(--bg-elevated-2); border-radius: 14px; padding: 13px; }
-  .log-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  /* uma coluna no telemóvel: com duas, os campos de hora ficavam com 22px
+     de largura útil porque os botões +/- comiam a caixa toda */
+  .log-grid { display: grid; grid-template-columns: 1fr; gap: 9px; }
+  @media (min-width: 620px) { .log-grid { grid-template-columns: 1fr 1fr; } }
   .log-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .log-field label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--text-faint); }
   .log-field input, .log-field select, .log-field textarea {
@@ -291,10 +294,10 @@
   /* controlos próprios — os nativos de data/hora e número são feios e
      comportam-se de forma diferente em cada browser */
   .stepper { display: flex; align-items: center; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-  .stepper button { width: 40px; min-height: 42px; border: none; background: none; color: var(--text-dim); font-size: 20px; font-weight: 700; cursor: pointer; line-height: 1; flex: none; -webkit-tap-highlight-color: transparent; }
+  .stepper button { width: 38px; min-height: 42px; border: none; background: none; color: var(--text-dim); font-size: 20px; font-weight: 700; cursor: pointer; line-height: 1; flex: none; -webkit-tap-highlight-color: transparent; }
   .stepper button:hover { color: var(--text); background: var(--bg-elevated-2); }
   .stepper button:active { background: var(--accent); color: var(--accent-text); }
-  .stepper input { flex: 1; min-width: 0; border: none; background: none; color: var(--text); text-align: center; font-family: inherit; font-size: 15px; font-weight: 700; padding: 10px 0; outline: none; font-variant-numeric: tabular-nums; }
+  .stepper input { flex: 1; min-width: 3ch; border: none; background: none; color: var(--text); text-align: center; font-family: inherit; font-size: 15px; font-weight: 700; padding: 10px 0; outline: none; font-variant-numeric: tabular-nums; }
   .stepper:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in oklch, var(--accent) 30%, transparent); }
   .stepper .sfx { color: var(--text-faint); font-size: 12px; font-weight: 600; padding-right: 9px; }
   .cal { position: relative; }
@@ -317,9 +320,9 @@
   .cal-d.hoje { box-shadow: inset 0 0 0 1.5px var(--accent); }
   .cal-d.sel { background: var(--accent); color: var(--accent-text); font-weight: 800; }
   .cal-d.vazio { visibility: hidden; pointer-events: none; }
-  .dur-hint { font-size: 15px; color: var(--text); font-weight: 700; margin: 0;
-    min-height: 44px; display: flex; flex-direction: column; justify-content: center; }
-  .dur-hint small { font-size: 12px; font-weight: 500; color: var(--text-faint); }
+  .dur-hint { font-size: 12.5px; color: var(--text-faint); font-weight: 500; margin: 2px 0 0; }
+  .dur-hint b { color: var(--text); font-weight: 700; }
+  .dur-hint small { font-size: 12.5px; color: var(--text-faint); display: block; }
   .chips { display: flex; gap: 6px; flex-wrap: wrap; }
   .chip { border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-dim); border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; min-height: 38px; }
   .chip.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
@@ -1807,13 +1810,9 @@ function renderLog() {
           </div>
         </div>
       </div>
-      <div class="log-grid">
-        <div class="log-field"><label>Quantos pescadores</label>
-          ${stepper("fPesc", f.pescadores || 1, { step: 1, min: 1, max: 20 })}
-        </div>
-        <div class="log-field"><label>Duração</label>
-          <p class="dur-hint">${esc(durTexto(f))}${duracaoH(f) > 12 ? " — atravessa a meia-noite?" : ""}</p>
-        </div>
+      <div class="log-field"><label>Quantos pescadores</label>
+        ${stepper("fPesc", f.pescadores || 1, { step: 1, min: 1, max: 20 })}
+        <p class="dur-hint">Duração <b>${esc(durTexto(f))}</b>${duracaoH(f) > 12 ? " — atravessa a meia-noite?" : ""}</p>
       </div>
       <div class="log-field"><label>Pesqueiro</label>
         <input id="fLocal" value="${esc(f.local)}" autocomplete="off" placeholder="Onde pescaste?">
@@ -2071,7 +2070,7 @@ function attachLog() {
       const f = { h: v("fH"), m: v("fM"), fh: v("fFH"), fm: v("fFM") };
       const p = Math.max(1, v("fPesc") || 1);
       const tot = duracaoH(f) * p;
-      hint.innerHTML = esc(durTexto(f)) + (duracaoH(f) > 12 ? " — atravessa a meia-noite?" : "") +
+      hint.innerHTML = "Duração <b>" + esc(durTexto(f)) + "</b>" + (duracaoH(f) > 12 ? " — atravessa a meia-noite?" : "") +
         (p > 1 ? "<small>" + tot.toFixed(1) + " horas de pesca no total</small>" : "");
     };
     ["fH", "fM", "fFH", "fFM", "fPesc"].forEach((id) => {
