@@ -450,6 +450,40 @@ const CFG = {
     tpAmarelo: 15, ventoLaranja: 61, rajadaVermelho: 70,
     mult: [1, 0.85, 1, 1], caps: [100, 100, 40, 15],
   },
+  /* ---------- ALBUFEIRA (água doce) ----------
+     Pesos de literatura, não de folclore. O melhor conjunto de dados que
+     existe (Escanaba, 4.776 saídas com registo obrigatório em 13 anos) testou
+     a pressão atmosférica e não encontrou efeito nenhum — e o estudo que o
+     mundo do achigã cita, "Stickney & Liu 1983", não existe em nenhum índice.
+     A lua fica igualmente a zero: há um sinal semi-lunar de ~5% em 342 mil
+     capturas, mas as tabelas solunares falharam a validação directa.
+     Nesse mesmo estudo TODAS as variáveis ambientais tiveram efeito "muito
+     pequeno" — daí o score de albufeira ser comprimido para 35-95. */
+  doce: {
+    pesos: { agua: 28, luz: 16, epoca: 10, vento: 8, aguaTend: 6, nuvens: 6,
+             nivel: 6, nivelTend: 6, turbidez: 6, estrat: 3, chuva: 1 },
+    // air2water simplificado: a água segue o ar com inércia. A literatura dá
+    // k≈0.12-0.20 em albufeiras fundas e 0.25-0.40 em rasas, mas não há dados
+    // de profundidade por albufeira — um valor único é mais honesto do que
+    // adivinhar pela latitude.
+    kAgua: 0.18,
+    // curvas térmicas [°C, 0-1] por espécie
+    temp: {
+      any:        [[6,0.05],[10,0.20],[14,0.50],[18,0.80],[22,1.0],[27,1.0],[30,0.7],[34,0.3]],
+      achiga:     [[6,0.05],[10,0.20],[14,0.45],[16,0.75],[20,1.0],[26,1.0],[28,0.85],[30,0.6],[32,0.35]],
+      lucioperca: [[4,0.10],[8,0.40],[12,0.80],[14,1.0],[20,1.0],[24,0.75],[26,0.5],[28,0.3]],
+      carpa:      [[6,0.05],[10,0.20],[14,0.45],[18,0.75],[24,1.0],[29,1.0],[31,0.75],[34,0.35]],
+      truta:      [[2,0.10],[6,0.45],[10,0.85],[12,1.0],[18,1.0],[20,0.6],[22,0.3],[24,0.1]],
+    },
+    // ângulo solar → sub-score de luz (o crepúsculo é o pico documentado)
+    luz: { noite: 0.55, noiteNoturnas: 0.95, crepusculo: 1.0, medio: 0.75, alto: 0.45 },
+    vento: [[0,0.65],[1,0.85],[3,1.0],[6,1.0],[8,0.90],[11,0.70],[14,0.45],[20,0.25]],
+    nuvens: [[0,0.60],[25,0.68],[50,0.78],[75,0.90],[100,1.0]],
+    // nível: só três estados — não existe na literatura um limiar em cm/dia
+    nivelTend: { sobeMuito: 1.0, sobe: 0.90, estavel: 0.80, desce: 0.65, desceMuito: 0.50 },
+    limiarTendencia: 0.30, // m/semana
+    compressao: [35, 95],
+  },
   // janelas: horas com score ≥ max(limiar, melhor-folga); aparadas a maxHoras
   // porque uma "melhor janela" de 18h não diz a ninguém quando ir.
   janelas: { limiar: 55, folga: 12, maxHoras: 5 },
@@ -535,6 +569,58 @@ const SPOTS = [
   ["Ilha de Faro (Ria Formosa)",37.005,-7.995,"estuario","g"],["Praia de Tavira (Ria Formosa)",37.114,-7.617,"estuario","g"],
   ["Molhe de Vila Real de Sto. António",37.170,-7.402,"paredao","g"],["Praia de Monte Gordo",37.178,-7.450,"praia","g"],
 ];
+/* ====================== ÁGUA DOCE: ALBUFEIRAS ======================
+   89 albufeiras, cada uma verificada: tem série de nível no SNIRH e
+   coordenadas oficiais. [nome, lat, lon, siteId SNIRH, frio(norte)]
+   O último campo distingue albufeiras frias do norte (com truta, achigã
+   raro, sem perca-sol) das quentes do centro/sul (Godinho et al. 1998). */
+const ALBUFEIRAS = [
+  ["Abrilongo",39.096,-7.121,"1627743354",0], ["Aguieira",40.3407,-8.1967,"1627743384",0],
+  ["Alijó (Vila Chã)",41.309,-7.445,"1627743406",1], ["Alqueva",38.197,-7.495,"1627743416",0],
+  ["Alqueva Jusante",38.1689,-7.4904,"7554862818",0], ["Alto Ceira",40.19,-7.846,"1627743426",0],
+  ["Alto Lindoso",41.871,-8.205,"1627743428",1], ["Alto Rabagão",41.732,-7.861,"1627743430",1],
+  ["Alto Tâmega",41.5729,-7.7318,"11508860178",1], ["Alvito",38.275,-7.921,"1627743440",0],
+  ["Apartadura",39.347,-7.368,"1627743458",0], ["Arade",37.238,-8.381,"1627743460",0],
+  ["Azibo",41.557,-6.888,"1627743482",1], ["Baixo Sabor",41.2286,-7.0125,"7554777518",1],
+  ["Beliche",37.278,-7.507,"1627743538",0], ["Belver",39.48,-7.998,"1627743544",0],
+  ["Bemposta",41.298,-6.471,"1627743548",1], ["Bouçã",39.856,-8.224,"1627743562",0],
+  ["Bravura",37.204,-8.696,"1627743568",0], ["Cabril",39.929,-8.127,"1627743586",0],
+  ["Caia",38.996,-7.14,"1627743648",0], ["Caldeirão",40.535,-7.335,"1627743662",0],
+  ["Campilhas",37.845,-8.612,"1627743668",0], ["Caniçada",41.652,-8.235,"1627743674",1],
+  ["Capinha",40.212,-7.387,"1627743678",0], ["Carrapatelo",41.088,-8.126,"1627743682",0],
+  ["Castelo do Bode",39.545,-8.323,"1627743896",0], ["Corte Brique",37.609,-8.453,"1627751880",0],
+  ["Cova do Viriato",40.309,-7.561,"1627751888",0], ["Crestuma",41.074,-8.488,"1627751912",0],
+  ["Daivões",41.5253,-7.8632,"9978398426",1], ["Divôr",38.705,-7.924,"1627752100",0],
+  ["Enxoé",37.98,-7.45,"1627752188",0], ["Ermida",40.7143,-8.353,"7554829608",0],
+  ["Fagilde",40.639,-7.783,"1627758608",0], ["Feiticeiro",41.2022,-7.093,"7554829602",1],
+  ["Fonte Serne",37.881,-8.497,"1627758624",0], ["Foz do Tua",41.2189,-7.4226,"9321904688",1],
+  ["Fratel",39.531,-7.833,"1627758658",0], ["Fronhas",40.241,-8.157,"1627758668",0],
+  ["Funcho",37.274,-8.374,"1627758670",0], ["Gouvães",41.4938,-7.727,"10908513554",1],
+  ["Guilhofrei",41.585,-8.138,"1627758686",1], ["Idanha",39.946,-7.202,"1627758730",0],
+  ["Lagoa Comprida",40.364,-7.649,"1627758736",0], ["Lagoacho",40.386,-7.62,"1627758738",0],
+  ["Lucefécit",38.636,-7.406,"1627758752",0], ["Magos",38.998,-8.688,"1627758756",0],
+  ["Maranhão",39.015,-7.976,"1627758764",0], ["Meimoa",40.263,-7.151,"1627758774",0],
+  ["Minutos",38.659,-8.098,"1627758784",0], ["Miranda",41.484,-6.28,"1627758786",1],
+  ["Montargil",39.053,-8.175,"1627758816",0], ["Monte Gato",37.791,-8.237,"1627758830",0],
+  ["Monte Migueis",37.789,-8.265,"1627758832",0], ["Monte Novo",38.511,-7.71,"1627758834",0],
+  ["Monte da Rocha",37.736,-8.294,"1627758846",0], ["Morgavél",37.898,-8.761,"1627758860",0],
+  ["Odeleite",37.331,-7.518,"1627758894",0], ["Odelouca",37.2869,-8.4711,"3507536920",0],
+  ["Odivelas",38.187,-8.121,"1627758906",0], ["Paradela",41.761,-7.957,"1627758928",1],
+  ["Picote",41.386,-6.374,"1627758968",1], ["Pocinho",41.1352,-7.1143,"1627758976",0],
+  ["Pracana",39.568,-7.816,"1627759292",0], ["Pêgo do Altar",38.419,-8.392,"1627758948",0],
+  ["Póvoa e Meadas",39.486,-7.557,"1627759290",0], ["Raiva",40.309,-8.251,"1627759328",0],
+  ["Ribeiradio",40.7422,-8.3194,"7554777512",0], ["Roxo",37.9296,-8.0819,"1627759368",0],
+  ["Régua",41.142,-7.708,"1627759340",0], ["Salamonde",41.689,-8.094,"1627759378",1],
+  ["Santa Clara",37.516,-8.44,"1627759384",0], ["Santa Luzia",40.09,-7.858,"1627759390",0],
+  ["Santa Águeda (Marateca)",39.969,-7.481,"1627759382",0], ["Serra Serrada",41.953,-6.779,"1627759434",1],
+  ["São Domingos",39.341,-9.314,"1627759402",0], ["Torrão",41.098,-8.262,"1627759468",0],
+  ["Touvedo",41.812,-8.349,"1627759476",1], ["Vale do Gaio",38.246,-8.297,"1627759492",0],
+  ["Vale do Rossim",40.4,-7.589,"1627759502",0], ["Valeira",41.167,-7.376,"1627759510",0],
+  ["Varosa",41.121,-7.775,"1627759512",0], ["Venda Nova",41.6812,-7.9848,"1627759522",1],
+  ["Venda Nova Frades",41.683,-7.99,"1627759524",1], ["Venda Nova Frades II",41.6946,-8.0228,"12303382358",1],
+  ["Vigia",38.538,-7.607,"1627759534",0], ["Vilar Tabuaço",40.987,-7.535,"1627759554",0],
+  ["Vilarinho das Furnas",41.759,-8.217,"1627759560",1]
+];
 // Caixas de estuário/ria → default "estuario"
 const ESTUARIOS = [
   [41.85,42.00,-8.90,-8.70,"Foz do Minho"],[41.60,41.72,-8.90,-8.70,"Lima"],[41.13,41.16,-8.70,-8.55,"Douro"],
@@ -543,8 +629,18 @@ const ESTUARIOS = [
   [37.11,37.14,-8.54,-8.49,"Arade"],[36.96,37.12,-8.05,-7.55,"Ria Formosa"],[37.15,37.22,-7.45,-7.38,"Guadiana"],
 ];
 function shoreTypeGuess(lat, lon) {
+  if (albufeiraPerto(lat, lon)) return "albufeira";
   for (const [la, lb, lo, lhi] of ESTUARIOS) if (lat >= la && lat <= lb && lon >= lo && lon <= lhi) return "estuario";
-  return "praia";
+  // Sem isto, uma vila do interior (Beringel, a 60 km do mar) era tratada
+  // como praia, com marés e tainhas.
+  let d = 1e9;
+  for (const s of SPOTS) d = Math.min(d, distKm(lat, lon, s[1], s[2]));
+  return d > 25 ? "interior" : "praia";
+}
+// as 3 albufeiras mais próximas — para quem cai no interior
+function albufeirasProximas(lat, lon, n) {
+  return ALBUFEIRAS.map((a) => ({ a, km: distKm(lat, lon, a[1], a[2]) }))
+    .sort((x, y) => x.km - y.km).slice(0, n || 3);
 }
 const regionOf = (lat) => lat >= 41 ? "n" : lat >= 39.4 ? "c" : lat >= 38.2 ? "l" : lat >= 37.4 ? "a" : "g";
 const seaDir = (lat) => lat < 37.15 ? 180 : 270; // mar aberto: S no Algarve, W no resto
@@ -639,6 +735,127 @@ const SPECIES = [
 ];
 const MESES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 
+/* ====================== ESPÉCIES DE ALBUFEIRA ======================
+   min: tamanho mínimo legal (tabela ICNF, águas lênticas; null = sem mínimo)
+   defeso: [mês/dia início, mês/dia fim] em que é proibido pescar
+   temp: [tMin, tOtimoLo, tOtimoHi, tMax] da curva térmica de alimentação
+   dev: "proibida" = não se pode devolver viva à água (espécie invasora)
+        "livre" = pode devolver-se                                        */
+const ESPECIES_DOCE = [
+  { id:"achiga", n:"Achigã", min:20, defeso:[[3,16],[5,14]], tier:1, freq:67.6,
+    pk:[3,5,6,10,11], ok:[1,2,3,5,6,7,8,9,10,11,12], frio:0.25,
+    hab:["mato submerso","pontas rochosas","braços abrigados"],
+    diel:{dia:0.55,alba:1,cre:1,noite:0.5}, temp:[8,20,26,32], dev:"proibida",
+    isco:"amostras (vinil, crankbait), lagostim artificial", curva:"achiga",
+    zona:"junto a estrutura — árvores submersas, pedras, mato inundado; nos primeiros 3 m" },
+  { id:"carpa", n:"Carpa", min:null, defeso:null, tier:1, freq:70.3,
+    pk:[5,6,7,8,9], ok:[1,2,3,4,5,6,7,8,9,10,11,12], frio:0.6,
+    hab:["fundos de lodo","zonas rasas","margens com vegetação"],
+    diel:{dia:0.8,alba:1,cre:1,noite:0.85}, temp:[10,22,29,34], dev:"livre",
+    isco:"milho, boilies, massa; engodo é essencial", curva:"carpa",
+    zona:"fundo, em zonas rasas e quentes; procura bolhas à superfície" },
+  { id:"perca-sol", n:"Perca-sol", min:null, defeso:null, tier:1, freq:43.2,
+    pk:[5,6,7,8,9], ok:[3,4,5,6,7,8,9,10,11], frio:0,
+    hab:["margens","vegetação","zonas rasas"],
+    diel:{dia:1,alba:0.9,cre:0.9,noite:0.2}, temp:[12,22,28,33], dev:"proibida",
+    isco:"minhoca, pequenas amostras", curva:"any",
+    zona:"muito perto da margem, à boia — é a espécie que um iniciante apanha primeiro" },
+  { id:"barbo", n:"Barbo-comum", min:20, defeso:[[3,16],[6,14]], tier:1, freq:56.8,
+    pk:[5,6,7,8,9], ok:[1,2,3,6,7,8,9,10,11,12], frio:0.7,
+    hab:["fundos de areia e gravilha","zonas de corrente"],
+    diel:{dia:0.7,alba:0.9,cre:1,noite:0.9}, temp:[10,18,26,32], dev:"livre",
+    isco:"minhoca, milho, massa", curva:"any",
+    zona:"fundo, em zonas de entrada de água e gravilha" },
+  { id:"boga", n:"Boga-comum", min:15, defeso:[[3,16],[6,14]], tier:1, freq:59.5,
+    pk:[4,5,6,9,10], ok:[1,2,3,6,7,8,9,10,11,12], frio:0.8,
+    hab:["fundos duros","zonas rasas"],
+    diel:{dia:1,alba:0.9,cre:0.8,noite:0.3}, temp:[10,16,24,30], dev:"livre",
+    isco:"massa, minhoca pequena", curva:"any",
+    zona:"fundo em água pouco funda e limpa; anzol pequeno" },
+  { id:"lucioperca", n:"Lúcio-perca", min:null, defeso:null, tier:2, freq:null,
+    pk:[4,5,9,10,11], ok:[1,2,3,4,5,6,7,8,9,10,11,12], frio:0.5,
+    hab:["taludes","zonas fundas","água turva"],
+    diel:{dia:0.35,alba:1,cre:1,noite:0.95}, temp:[6,14,20,26], dev:"proibida",
+    isco:"vinis, peixe morto", curva:"lucioperca", noturna:true,
+    zona:"meia-água sobre fundos de 4-8 m, ao crepúsculo; gosta de água turva" },
+  { id:"siluro", n:"Siluro", min:null, defeso:null, tier:2, freq:null,
+    pk:[6,7,8,9], ok:[4,5,6,7,8,9,10], frio:0,
+    hab:["fossas","zonas fundas","perto de estrutura"],
+    diel:{dia:0.3,alba:0.7,cre:0.9,noite:1}, temp:[12,22,28,32], dev:"proibida",
+    isco:"peixe morto, pellets grandes", curva:"any", noturna:true,
+    zona:"fundo, nas zonas mais fundas; material forte — passa dos 2 m" },
+  { id:"alburno", n:"Alburno", min:null, defeso:null, tier:2, freq:null,
+    pk:[5,6,7,8,9], ok:[3,4,5,6,7,8,9,10,11], frio:0.4,
+    hab:["superfície","zonas abertas"],
+    diel:{dia:1,alba:0.9,cre:0.9,noite:0.2}, temp:[12,20,27,32], dev:"proibida",
+    isco:"massa, mosca, larva", curva:"any",
+    zona:"à superfície, à boia leve — pica quase sempre" },
+  { id:"pimpao", n:"Pimpão", min:null, defeso:null, tier:2, freq:32.4,
+    pk:[5,6,7,8,9], ok:[3,4,5,6,7,8,9,10,11], frio:0.5,
+    hab:["fundos de lodo","zonas rasas"],
+    diel:{dia:0.9,alba:1,cre:1,noite:0.5}, temp:[10,20,28,33], dev:"proibida",
+    isco:"milho, massa, minhoca", curva:"any",
+    zona:"fundo, em água rasa e parada" },
+  { id:"escalo", n:"Escalo", min:12, defeso:[[3,16],[6,14]], tier:2, freq:29.7,
+    pk:[4,5,6,9,10], ok:[1,2,3,6,7,8,9,10,11,12], frio:0.8,
+    hab:["margens","zonas rasas"],
+    diel:{dia:0.9,alba:1,cre:1,noite:0.4}, temp:[8,16,24,30], dev:"livre",
+    isco:"minhoca, massa, mosca", curva:"any",
+    zona:"perto da margem, à boia ou de fundo leve" },
+  { id:"truta", n:"Truta-de-rio", min:20, defeso:[[8,1],[2,28]], tier:2, freq:32.4,
+    pk:[3,4,5,6], ok:[3,4,5,6,7], frio:1,
+    hab:["água fria","zonas fundas no verão"],
+    diel:{dia:0.7,alba:1,cre:1,noite:0.4}, temp:[4,10,18,22], dev:"livre",
+    isco:"amostras pequenas, minhoca", curva:"truta",
+    zona:"só nas albufeiras frias do norte; época de 1 de março a 31 de julho" },
+];
+
+/* ====================== MOTOR DE ÁGUA DOCE ======================
+   Modelo separado do mar: nem ondulação, nem maré, nem sal. A temperatura
+   da água é o factor dominante e não tem fonte gratuita — é estimada a
+   partir do ar por um air2water simplificado, e a app di-lo. */
+const albufeiraPerto = (lat, lon) => {
+  let best = null, bd = 1e9;
+  for (const a of ALBUFEIRAS) {
+    const d = distKm(lat, lon, a[1], a[2]);
+    if (d < bd) { bd = d; best = a; }
+  }
+  return bd <= 6 ? { a: best, km: bd } : null;
+};
+// Tw(t) = Tw(t-1) + k·(Tar - Tw(t-1)); k menor em albufeiras fundas
+function tempAgua(horas, iAgora) {
+  const k = CFG.doce.kAgua;
+  const dias = [];
+  for (let i = 0; i < horas.length; i += 24) {
+    const bloco = horas.slice(i, i + 24).map((h) => h.temp).filter((v) => v != null);
+    if (bloco.length) dias.push(bloco.reduce((a, b) => a + b, 0) / bloco.length);
+  }
+  if (!dias.length) return null;
+  let tw = dias[0];                       // arranca na média do primeiro dia
+  const serie = [];
+  for (const tar of dias) { tw = tw + k * (tar - tw); serie.push(tw); }
+  const idx = Math.min(serie.length - 1, Math.floor(iAgora / 24));
+  return { agora: serie[idx], serie, tend3d: idx >= 3 ? serie[idx] - serie[idx - 3] : 0 };
+}
+// ângulo solar aproximado (grau) — melhor que a hora do relógio
+function anguloSolar(date, lat, lon) {
+  const d = (date - new Date(date.getFullYear(), 0, 0)) / 864e5;
+  const decl = 23.45 * Math.sin(2 * Math.PI * (284 + d) / 365) * Math.PI / 180;
+  const hUTC = date.getUTCHours() + date.getUTCMinutes() / 60;
+  const H = (hUTC - 12) * 15 + lon;
+  const la = lat * Math.PI / 180, Hr = H * Math.PI / 180;
+  return Math.asin(Math.sin(la) * Math.sin(decl) + Math.cos(la) * Math.cos(decl) * Math.cos(Hr)) * 180 / Math.PI;
+}
+const noDefeso = (sp, mes, dia) => {
+  if (!sp.defeso) return false;
+  const [[m1, d1], [m2, d2]] = sp.defeso;
+  const x = mes * 100 + dia, a = m1 * 100 + d1, b = m2 * 100 + d2;
+  return a <= b ? (x >= a && x <= b) : (x >= a || x <= b);
+};
+function fetchNivel(site) {
+  return fetchJson("/api/albufeira?site=" + encodeURIComponent(site), 12000).catch(() => null);
+}
+
 /* ============================ API ============================ */
 function fetchJson(url, ms) {
   const ctl = new AbortController();
@@ -652,7 +869,9 @@ function geocode(q) {
   const u = "https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(q) + "&count=6&language=pt&countryCode=PT";
   const fq = fold(q);
   const locais = SPOTS.filter((s) => fold(s[0]).includes(fq)).slice(0, 4)
-    .map((s) => ({ name: s[0], lat: s[1], lon: s[2], tipo: s[3], meta: "Pesqueiro conhecido" }));
+    .map((s) => ({ name: s[0], lat: s[1], lon: s[2], tipo: s[3], meta: "Pesqueiro conhecido" }))
+    .concat(ALBUFEIRAS.filter((a) => fold(a[0]).includes(fq)).slice(0, 4)
+      .map((a) => ({ name: "Barragem de " + a[0], lat: a[1], lon: a[2], tipo: "albufeira", meta: "Albufeira" })));
   return fetchJson(u, 8000).then((d) => {
     const geo = (d.results || []).map((r) => ({
       name: r.name, lat: r.latitude, lon: r.longitude, tipo: null,
@@ -664,7 +883,7 @@ function geocode(q) {
 }
 function fetchWx(lat, lon, pastDays) {
   const u = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon +
-    "&hourly=pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,precipitation" +
+    "&hourly=temperature_2m,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,precipitation" +
     "&daily=sunrise,sunset&timezone=Europe%2FLisbon&past_days=" + (pastDays || 1) +
     "&forecast_days=" + (pastDays ? 1 : 7) + "&wind_speed_unit=kmh";
   return fetchJson(u, pastDays ? 20000 : 10000);
@@ -695,6 +914,7 @@ function buildHours(wx, sea) {
     return {
       t: ts, i,
       p: g(wx.hourly.pressure_msl, i), vento: g(wx.hourly.wind_speed_10m, i),
+      temp: g(wx.hourly.temperature_2m, i),
       dir: g(wx.hourly.wind_direction_10m, i), raj: g(wx.hourly.wind_gusts_10m, i),
       nuvens: g(wx.hourly.cloud_cover, i), chuva: g(wx.hourly.precipitation, i),
       hs: s != null ? g(sea.hourly.wave_height, s) : null,
@@ -1114,6 +1334,168 @@ function computeAll(spot, shoreType, wx, sea, refNow) {
   };
 }
 
+/* ---------- score de albufeira ---------- */
+function computeDoce(spot, wx, nivel, refNow) {
+  const D = CFG.doce, P = D.pesos;
+  const hours = buildHours(wx, null);
+  const now = refNow ? new Date(refNow) : new Date();
+  const start = Math.max(0, hours.findIndex((h) => new Date(h.t) > now) - 1);
+  const suns = makeSuns(wx);
+  const mes = now.getMonth() + 1, dia = now.getDate();
+  const funda = !!spot.funda;
+  const tw = tempAgua(hours, start);
+  const frio = !!spot.frio;
+
+  // espécies em época e possíveis nesta albufeira
+  const emEpoca = ESPECIES_DOCE.filter((sp) =>
+    sp.ok.includes(mes) && !noDefeso(sp, mes, dia) && (frio ? sp.frio > 0.3 : sp.frio < 1));
+  const noturnas = emEpoca.some((sp) => sp.noturna);
+
+  const nivelTendVal = nivel && nivel.tendenciaCotaSemana != null ? nivel.tendenciaCotaSemana : null;
+  const subNivelTend = nivelTendVal == null ? null
+    : nivelTendVal >= D.limiarTendencia ? D.nivelTend.sobeMuito
+    : nivelTendVal >= 0.05 ? D.nivelTend.sobe
+    : nivelTendVal > -0.05 ? D.nivelTend.estavel
+    : nivelTendVal > -D.limiarTendencia ? D.nivelTend.desce : D.nivelTend.desceMuito;
+
+  function subsAt(i) {
+    const h = hours[i], s = {};
+    const alt = anguloSolar(new Date(h.t), spot.lat, spot.lon);
+    // ÁGUA — o factor dominante; melhor espécie em época manda
+    if (tw) {
+      let melhor = 0;
+      for (const sp of emEpoca) melhor = Math.max(melhor, interp(D.temp[sp.curva] || D.temp.any, tw.agora));
+      s.agua = clamp01(melhor || interp(D.temp.any, tw.agora));
+      s.aguaTend = clamp01(tw.agora < 20 ? (tw.tend3d >= 1.5 ? 1 : tw.tend3d <= -2 ? 0.2 : 0.6 + tw.tend3d * 0.2)
+                                         : (tw.tend3d <= -1.5 ? 1 : tw.tend3d >= 1.5 ? 0.35 : 0.6 - tw.tend3d * 0.15));
+    } else { s.agua = null; s.aguaTend = null; }
+    // LUZ — pelo ângulo solar
+    s.luz = alt < -6 ? (noturnas ? D.luz.noiteNoturnas : D.luz.noite)
+          : alt <= 10 ? D.luz.crepusculo : alt <= 25 ? D.luz.medio : D.luz.alto;
+    // ÉPOCA — média da adequação das espécies em época
+    s.epoca = emEpoca.length
+      ? clamp01(emEpoca.reduce((a, sp) => a + (sp.pk.includes(mes) ? 1 : 0.55), 0) / emEpoca.length) : 0.3;
+    s.vento = h.vento == null ? null : clamp01(interp(D.vento, h.vento));
+    s.nuvens = alt < 0 ? 1 : (h.nuvens == null ? null : clamp01(interp(D.nuvens, h.nuvens)));
+    s.nivel = null; // % de enchimento exige capacidade total — ver README
+    s.nivelTend = subNivelTend;
+    s.turbidez = null;                       // sem fonte gratuita
+    s.estrat = (funda && tw && tw.agora > 26 && alt > 10) ? 0.85 : 1;
+    const chuva24 = hours.slice(Math.max(0, i - 24), i).reduce((a, x) => a + (x.chuva || 0), 0);
+    s.chuva = chuva24 > 25 ? 0.6 : chuva24 > 8 ? 0.85 : 1;
+    return { s, alt };
+  }
+  function scoreAt(i) {
+    const { s } = subsAt(i);
+    let tot = 0, w = 0;
+    for (const k of Object.keys(P)) if (s[k] != null) { tot += P[k] * s[k]; w += P[k]; }
+    const bruto = w ? tot / w : 0;
+    const [lo, hi] = D.compressao;
+    return { score: Math.round(lo + bruto * (hi - lo)), subs: s };
+  }
+
+  const s48 = [];
+  for (let i = start; i < Math.min(hours.length, start + 48); i++) s48.push({ i, t: hours[i].t, ...scoreAt(i) });
+  const hoje = hours[start].t.slice(0, 10);
+  const week = [];
+  wx.daily.time.forEach((d) => {
+    if (d < hoje) return;
+    let best = 0;
+    for (let i = start; i < hours.length; i++) if (hours[i].t.slice(0, 10) === d) best = Math.max(best, scoreAt(i).score);
+    week.push({ d, label: diaLabel(d, hoje), score: best });
+  });
+
+  // janelas (respeitando a proibição de pesca nocturna)
+  const best = Math.max.apply(null, s48.map((x) => x.score));
+  const lim = Math.max(CFG.janelas.limiar, best - CFG.janelas.folga);
+  const runs = []; let cur = null;
+  for (const x of s48) { if (x.score >= lim) { if (!cur) { cur = []; runs.push(cur); } cur.push(x); } else cur = null; }
+  const MAXW = CFG.janelas.maxHoras;
+  const trim = runs.map((r) => {
+    if (r.length <= MAXW) return r;
+    let bi = 0, bs = -1;
+    for (let k = 0; k + MAXW <= r.length; k++) {
+      const sm = r.slice(k, k + MAXW).reduce((a, x) => a + x.score, 0);
+      if (sm > bs) { bs = sm; bi = k; }
+    }
+    return r.slice(bi, bi + MAXW);
+  });
+  const rmax = (r) => Math.max.apply(null, r.map((x) => x.score));
+  trim.sort((a, b) => rmax(b) - rmax(a));
+  const hh = (d) => String(d.getHours()).padStart(2, "0") + "h";
+  const windows = trim.slice(0, 3).map((r) => {
+    const a = r[0], b = r[r.length - 1];
+    const ini = new Date(a.t), fim = new Date(new Date(b.t).getTime() + 36e5);
+    const diaIni = diaLabel(a.t.slice(0, 10), hoje);
+    const atravessa = fim.getHours() !== 0 && fim.toDateString() !== ini.toDateString();
+    const altMid = anguloSolar(new Date(r[Math.floor(r.length / 2)].t), spot.lat, spot.lon);
+    return {
+      when: atravessa ? diaIni + " " + hh(ini) + " → " + diaLabel(ymd(fim), hoje) + " " + hh(fim)
+                      : diaIni + ", " + hh(ini) + "–" + (fim.getHours() === 0 ? "00h" : hh(fim)),
+      tag: altMid < -6 ? "noite — precisa de autorização" : altMid <= 10 ? "crepúsculo, a melhor luz" : "dia",
+      score: rmax(r), noturna: altMid < -6,
+    };
+  });
+
+  const agora = scoreAt(start);
+  const ranked = emEpoca.map((sp) => {
+    const diel = anguloSolar(now, spot.lat, spot.lon) < -6 ? sp.diel.noite : sp.diel.dia;
+    const tfit = tw ? interp(D.temp[sp.curva] || D.temp.any, tw.agora) : 0.6;
+    const rfit = frio ? sp.frio : (1 - sp.frio * 0.3);
+    return { sp, suit: (sp.pk.includes(mes) ? 1 : 0.55) * diel * tfit * rfit };
+  }).sort((a, b) => b.suit - a.suit).slice(0, 5);
+
+  const top = ranked[0] ? ranked[0].sp : null;
+  const tech = top ? {
+    name: top.tec || (top.id === "achiga" || top.id === "lucioperca" ? "AMOSTRAS (spinning)" : "FUNDO / BOIA"),
+    icon: top.id === "achiga" || top.id === "lucioperca" ? "🎣" : "⚓",
+    why: "Melhor aposta agora: " + top.n.toLowerCase() + ".",
+    tips: [
+      "<b>Isco:</b> " + top.isco + ".",
+      "<b>Onde:</b> " + top.zona + ".",
+      tw ? "<b>Água estimada:</b> " + tw.agora.toFixed(1) + " °C (calculada a partir do ar, ±1-2 °C)." : "",
+      "<b>Licença:</b> pesca lúdica em águas interiores (ICNF) — é diferente da do mar.",
+    ].filter(Boolean),
+  } : { name: "—", icon: "🎣", why: "Sem espécies em época.", tips: [] };
+
+  const nivelTxt = nivel && nivel.cota
+    ? "Cota " + nivel.cota.valor.toFixed(2) + " m" +
+      (nivelTendVal != null ? (nivelTendVal > 0.05 ? " · a subir " + nivelTendVal.toFixed(2) + " m/semana"
+        : nivelTendVal < -0.05 ? " · a descer " + Math.abs(nivelTendVal).toFixed(2) + " m/semana" : " · estável") : "")
+    : "Sem dados de nível";
+
+  const factors = [
+    { key:"agua", label:"Temperatura da água", icon:"🌡️", value: agora.subs.agua == null ? null : Math.round(agora.subs.agua * 100),
+      note: tw ? "≈" + tw.agora.toFixed(1) + " °C, estimada do ar (±1-2 °C). É o factor que mais pesa em água doce." : "Sem estimativa." },
+    { key:"luz", label:"Luz / período do dia", icon:"🌅", value: Math.round(agora.subs.luz * 100),
+      note: "O crepúsculo é o pico documentado. A pesca nocturna é proibida sem autorização." },
+    { key:"nivelTend", label:"Nível da albufeira", icon:"💧", value: subNivelTend == null ? null : Math.round(subNivelTend * 100),
+      note: nivelTxt + ". Água a subir inunda o mato e traz o peixe à margem." },
+    { key:"epoca", label:"Época", icon:"📅", value: Math.round(agora.subs.epoca * 100),
+      note: emEpoca.length ? emEpoca.length + " espécies em época este mês." : "Poucas espécies em época." },
+    { key:"vento", label:"Vento", icon:"💨", value: agora.subs.vento == null ? null : Math.round(agora.subs.vento * 100),
+      note: hours[start].vento == null ? "Sem dados." : Math.round(hours[start].vento) + " km/h. Alguma ondulação ajuda; muito vento impede lançar." },
+    { key:"nuvens", label:"Nebulosidade", icon:"☁️", value: agora.subs.nuvens == null ? null : Math.round(agora.subs.nuvens * 100),
+      note: "Céu encoberto melhora — menos luz no fundo." },
+    { key:"pressao", label:"Pressão", icon:"📈", value: null, info: true,
+      note: "Não pontua: o melhor estudo (4.776 saídas, 13 anos) não encontrou efeito nenhum, e o estudo que toda a gente cita não existe." },
+    { key:"lua", label:"Lua", icon:"🌙", value: null, info: true,
+      note: "Não pontua: sem marés não há por onde o efeito chegar, e as tabelas solunares falharam a validação." },
+  ];
+
+  return {
+    doce: true, score: agora.score, partial: !nivel, safety: null,
+    windows, forecast: s48.map((x) => ({ s: x.score, t: x.t })), week, factors, tech,
+    species: ranked.map((r) => ({ n: r.sp.n, min: r.sp.min, dev: r.sp.dev })),
+    tide: { noData: true, high: "—", low: "—", viva: "" },
+    tideSeries: [], tideMarks: [], moon: moonInfo(now), uplift: { mult: 1, label: null },
+    nivel, nivelTxt, tempAgua: tw ? tw.agora : null, noturnas,
+    horaRef: (() => { const c = hours[start] || {}; return { t: c.t, vento: c.vento, rajada: c.raj,
+      dirVento: c.dir, nuvens: c.nuvens, pressao: c.p, tempAr: c.temp, tempAgua: tw ? tw.agora : null }; })(),
+    updatedAt: "hoje às " + now.toTimeString().slice(0, 5),
+  };
+}
+
 /* ====================== REGISTO DE PESCARIAS ======================
    localStorage por agora. O formato já é o de um backend partilhado:
    cada registo tem id próprio e id de pescador, para se poderem juntar
@@ -1237,13 +1619,18 @@ function verdictFor(score) {
   if (score >= 25) return { label: "Fraco", css: "var(--v-fraco)" };
   return { label: "Não vale a pena", css: "var(--v-naovale)" };
 }
-const TIPOS = [["praia", "Areal"], ["rochas", "Rochas"], ["paredao", "Paredão"], ["estuario", "Ria/estuário"]];
-const TIPO_LABEL = { praia: "Areal", rochas: "Rochas", paredao: "Paredão", estuario: "Ria/estuário" };
+const TIPOS = [["praia", "Areal"], ["rochas", "Rochas"], ["paredao", "Paredão"], ["estuario", "Ria/estuário"], ["albufeira", "Albufeira"]];
+const TIPO_LABEL = { praia: "Areal", rochas: "Rochas", paredao: "Paredão", estuario: "Ria/estuário", albufeira: "Albufeira" };
 const distKm = (aLat, aLon, bLat, bLon) => Math.hypot((aLat - bLat) * 111, (aLon - bLon) * 111 * Math.cos(aLat * Math.PI / 180));
 function nearestSpot(lat, lon) {
   let best = null, bd = 1e9;
   for (const s of SPOTS) { const d = distKm(lat, lon, s[1], s[2]); if (d < bd) { bd = d; best = s; } }
-  return { spot: { name: best[0], lat: best[1], lon: best[2], tipo: best[3] }, km: bd };
+  let melhor = { spot: { name: best[0], lat: best[1], lon: best[2], tipo: best[3] }, km: bd };
+  for (const a of ALBUFEIRAS) {
+    const d = distKm(lat, lon, a[1], a[2]);
+    if (d < melhor.km) melhor = { spot: { name: "Barragem de " + a[0], lat: a[1], lon: a[2], tipo: "albufeira" }, km: d };
+  }
+  return melhor;
 }
 
 /* --- Leaflet: mapa real, tiles sem chave (mapa OSM/CARTO + satélite Esri) --- */
@@ -1300,7 +1687,7 @@ function drawSpots() {
   if (!LMAP || !LSPOTS) return;
   LSPOTS.clearLayers();
   const sel = st.spot ? spotKey(st.spot.lat, st.spot.lon) : null;
-  const list = SPOTS.slice();
+  const list = SPOTS.concat(ALBUFEIRAS.map((a) => ["Barragem de " + a[0], a[1], a[2], "albufeira"]));
   // ponto livre (fora da lista curada) também ganha marcador
   if (st.spot && !SPOTS.some((s) => spotKey(s[1], s[2]) === sel)) list.push([st.spot.name, st.spot.lat, st.spot.lon, st.shoreType]);
   list.forEach((s) => {
@@ -1510,7 +1897,7 @@ function renderScoreCard(vm) {
       <div class="score-place">${esc(st.spot.name)}${st.userPos ? ' <span style="opacity:.55">· a ' + (function (d) { return d < 1 ? Math.round(d * 1000) + " m" : d.toFixed(1) + " km"; })(distKm(st.userPos.lat, st.userPos.lon, st.spot.lat, st.spot.lon)) + " de ti</span>" : ""}${st.busy ? ' <span style="opacity:.6">· a atualizar…</span>' : ""}</div>
       <div class="score-number${vm.partial ? " dashed" : ""}">${vm.score}<span class="score-scale">/100</span></div>
       <div class="score-verdict">${v.label}</div>
-      ${vm.partial ? `<div class="partial-badge">⚠️ Score parcial — sem dados de mar para este ponto</div>` : ""}
+      ${vm.partial ? `<div class="partial-badge">⚠️ Score parcial — ${vm.doce ? "sem o nível da albufeira" : "sem dados de mar para este ponto"}</div>` : ""}
       ${vm.uplift && vm.uplift.label ? `<div class="partial-badge">🧊 ${esc(vm.uplift.label)}</div>` : ""}
       <div class="score-updated">Atualizado ${vm.updatedAt}</div>
     </section>`;
@@ -1683,6 +2070,23 @@ function renderTideChart(vm) {
       <path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
       ${marks}
     </svg>`;
+}
+function renderDoce(vm) {
+  const noturnaProibida = vm.windows.some((w) => w.noturna);
+  return `
+    <section class="section">
+      <h2 class="section-title">Albufeira</h2>
+      <div class="tide-grid">
+        <div class="tide-item"><div class="tide-label">Água (estimada)</div>
+          <div class="tide-time">${vm.tempAgua == null ? "—" : vm.tempAgua.toFixed(1) + " °C"}</div>
+          <div class="tide-sub">calculada do ar, ±1-2 °C</div></div>
+        <div class="tide-item"><div class="tide-label">Nível</div>
+          <div class="tide-time" style="font-size:15px;line-height:1.3">${esc(vm.nivelTxt || "sem dados")}</div>
+          <div class="tide-sub">${vm.nivel ? "SNIRH / APA" : ""}</div></div>
+      </div>
+      ${noturnaProibida ? `<div class="mp-warn amarelo">⚠️ Uma das janelas é nocturna. Em águas interiores só se pode pescar de meia hora antes do nascer do sol a meia hora depois do pôr-do-sol — a noite exige autorização específica (carpfishing).</div>` : ""}
+      <p class="tide-note">Licença de pesca lúdica em <b>águas interiores</b> (ICNF) — não serve a do mar. Espécies exóticas (achigã, perca-sol, lúcio-perca, siluro, alburno, pimpão) <b>não podem ser devolvidas vivas</b> à água; a lei não obriga a matá-las, mas proíbe repô-las. Cuidado com descargas da barragem: se ouvires a sirene, sai da água imediatamente.</p>
+    </section>`;
 }
 function renderTide(vm) {
   return `
@@ -1893,8 +2297,23 @@ function render() {
   else if (!st.spot) body = `
     <div class="empty-state">
       <span class="icon">🎣</span><h2>Escolhe um pesqueiro</h2>
-      <p>Procura uma praia, molhe ou vila costeira em cima, ou toca no mapa.</p>
+      <p>Procura uma praia, molhe, vila costeira ou barragem em cima, ou toca no mapa.</p>
     </div>`;
+  else if (st.shoreType === "interior") {
+    const perto = albufeirasProximas(st.spot.lat, st.spot.lon, 3);
+    body = `
+      <div class="empty-state">
+        <span class="icon">🏞️</span>
+        <h2>${esc(st.spot.name)} fica no interior</h2>
+        <p>Não é costa nem nenhuma albufeira que eu conheça, por isso não consigo calcular um score honesto aqui — não tenho dados de água para este ponto.</p>
+        <div class="log-actions" style="max-width:420px">
+          ${perto.map((p, i) => `<button class="log-btn${i ? " ghost" : " primary"}" data-alb="${i}">
+            Barragem de ${esc(p.a[0])} · ${Math.round(p.km)} km</button>`).join("")}
+        </div>
+        <p style="font-size:12.5px">Ou procura uma praia, um molhe ou outra barragem em cima.</p>
+      </div>`;
+    st._albPerto = perto;
+  }
   else if (st.vm) {
     const vm = st.vm;
     body = `
@@ -1903,7 +2322,7 @@ function render() {
       <div class="layout${st.mapExpanded ? " map-expanded" : ""}">
         <div class="layout-left">${renderScoreCard(vm)}${renderMap(vm.score)}</div>
         <div class="layout-right">
-          ${renderWindows(vm)}${renderFactors(vm)}${renderTechnique(vm)}${renderSpecies(vm)}${renderTide(vm)}${renderLog()}
+          ${renderWindows(vm)}${renderFactors(vm)}${renderTechnique(vm)}${renderSpecies(vm)}${vm.doce ? renderDoce(vm) : renderTide(vm)}${renderLog()}
         </div>
       </div>
       ${renderFooter(vm)}`;
@@ -1999,6 +2418,10 @@ function attach() {
   });
   const rb = document.getElementById("retryBtn");
   if (rb) rb.addEventListener("click", () => load());
+  document.querySelectorAll("[data-alb]").forEach((b) => b.addEventListener("click", () => {
+    const p = st._albPerto[+b.getAttribute("data-alb")];
+    selectSpot({ name: "Barragem de " + p.a[0], lat: p.a[1], lon: p.a[2], tipo: "albufeira" });
+  }));
   attachLog();
 }
 function reFocus(id) {
@@ -2290,13 +2713,20 @@ function cacheVm() {
 }
 function load() {
   if (!st.spot) { render(); return; }
+  if (st.shoreType === "interior") { st.loading = false; st.busy = false; st.vm = null; render(); return; }
   // Se já há conteúdo no ecrã, atualizar em silêncio: substituir tudo por
   // esqueletos a cada troca de pesqueiro parecia um refresh da página.
   st.loading = !st.vm;
   st.busy = true; st.error = null; st.offline = false;
   render();
   const reqSpot = st.spot;
-  Promise.allSettled([fetchWx(st.spot.lat, st.spot.lon), fetchSea(st.spot.lat, st.spot.lon)]).then(([w, s]) => {
+  const doce = st.shoreType === "albufeira";
+  const alb = doce ? albufeiraPerto(st.spot.lat, st.spot.lon) : null;
+  Promise.allSettled([
+    fetchWx(st.spot.lat, st.spot.lon),
+    doce ? Promise.resolve(null) : fetchSea(st.spot.lat, st.spot.lon),
+    alb ? fetchNivel(alb.a[3]) : Promise.resolve(null),
+  ]).then(([w, s, nv]) => {
     if (st.spot !== reqSpot) return; // o utilizador já mudou de sítio
     st.loading = false; st.busy = false;
     if (w.status !== "fulfilled") {
@@ -2309,9 +2739,12 @@ function load() {
       render(); return;
     }
     const sea = s.status === "fulfilled" ? s.value : null;
-    st.raw = { wx: w.value, sea };
+    const nivel = nv && nv.status === "fulfilled" ? nv.value : null;
+    st.raw = { wx: w.value, sea, nivel };
     try {
-      st.vm = computeAll(st.spot, st.shoreType, w.value, sea);
+      st.vm = doce
+        ? computeDoce(Object.assign({}, st.spot, { frio: alb && alb.a[4] === 1, funda: alb && alb.a[4] === 1 }), w.value, nivel)
+        : computeAll(st.spot, st.shoreType, w.value, sea);
       cacheVm();
     } catch (e) {
       st.error = "Erro a calcular o score (" + e.message + ")."; st.vm = null;
