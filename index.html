@@ -581,56 +581,80 @@ const SPOTS = [
   ["Molhe de Vila Real de Sto. António",37.170,-7.402,"paredao","g"],["Praia de Monte Gordo",37.178,-7.450,"praia","g"],
 ];
 /* ====================== ÁGUA DOCE: ALBUFEIRAS ======================
-   89 albufeiras, cada uma verificada: tem série de nível no SNIRH e
-   coordenadas oficiais. [nome, lat, lon, siteId SNIRH, frio(norte)]
+   136 albufeiras com coordenadas oficiais do SNIRH.
+   [nome, lat, lon, siteId SNIRH ("" = sem série de nível), frio(norte)]
+   47 não publicam nível — continuam pescáveis, só perdem esse factor.
    O último campo distingue albufeiras frias do norte (com truta, achigã
    raro, sem perca-sol) das quentes do centro/sul (Godinho et al. 1998). */
 const ALBUFEIRAS = [
   ["Abrilongo",39.096,-7.121,"1627743354",0], ["Aguieira",40.3407,-8.1967,"1627743384",0],
-  ["Alijó (Vila Chã)",41.309,-7.445,"1627743406",1], ["Alqueva",38.197,-7.495,"1627743416",0],
-  ["Alqueva Jusante",38.1689,-7.4904,"7554862818",0], ["Alto Ceira",40.19,-7.846,"1627743426",0],
+  ["Alcoutim",37.4702,-7.4934,"",0], ["Alijó (Vila Chã)",41.309,-7.445,"1627743406",1],
+  ["Alqueva",38.197,-7.495,"1627743416",0], ["Alqueva Jusante",38.1689,-7.4904,"7554862818",0],
+  ["Alto Ceira",40.19,-7.846,"1627743426",0], ["Alto Cávado",41.803,-7.876,"",1],
   ["Alto Lindoso",41.871,-8.205,"1627743428",1], ["Alto Rabagão",41.732,-7.861,"1627743430",1],
   ["Alto Tâmega",41.5729,-7.7318,"11508860178",1], ["Alvito",38.275,-7.921,"1627743440",0],
-  ["Apartadura",39.347,-7.368,"1627743458",0], ["Arade",37.238,-8.381,"1627743460",0],
-  ["Azibo",41.557,-6.888,"1627743482",1], ["Baixo Sabor",41.2286,-7.0125,"7554777518",1],
+  ["Alvão (Vila Real)",41.32,-7.8,"",1], ["Apartadura",39.347,-7.368,"1627743458",0],
+  ["Arade",37.238,-8.381,"1627743460",0], ["Armamar (Temilobos)",41.058,-7.672,"",0],
+  ["Arroio",41.089,-6.998,"",0], ["Azibo",41.557,-6.888,"1627743482",1],
+  ["Baixo Sabor",41.2286,-7.0125,"7554777518",1], ["Bastêlos",41.395,-6.66,"",1],
   ["Beliche",37.278,-7.507,"1627743538",0], ["Belver",39.48,-7.998,"1627743544",0],
-  ["Bemposta",41.298,-6.471,"1627743548",1], ["Bouçã",39.856,-8.224,"1627743562",0],
-  ["Bravura",37.204,-8.696,"1627743568",0], ["Cabril",39.929,-8.127,"1627743586",0],
-  ["Caia",38.996,-7.14,"1627743648",0], ["Caldeirão",40.535,-7.335,"1627743662",0],
+  ["Bemposta",41.298,-6.471,"1627743548",1], ["Boavista",37.503,-8.091,"",0],
+  ["Bouçã",39.856,-8.224,"1627743562",0], ["Bravura",37.204,-8.696,"1627743568",0],
+  ["Burga",41.391,-7.05,"",1], ["Burgães",40.854,-8.303,"",0],
+  ["Cabril",39.929,-8.127,"1627743586",0], ["Caia",38.996,-7.14,"1627743648",0],
+  ["Caldeirão",40.535,-7.335,"1627743662",0], ["Camba",41.447,-6.901,"",1],
   ["Campilhas",37.845,-8.612,"1627743668",0], ["Caniçada",41.652,-8.235,"1627743674",1],
-  ["Capinha",40.212,-7.387,"1627743678",0], ["Carrapatelo",41.088,-8.126,"1627743682",0],
-  ["Castelo do Bode",39.545,-8.323,"1627743896",0], ["Corte Brique",37.609,-8.453,"1627751880",0],
-  ["Cova do Viriato",40.309,-7.561,"1627751888",0], ["Crestuma",41.074,-8.488,"1627751912",0],
-  ["Daivões",41.5253,-7.8632,"9978398426",1], ["Divôr",38.705,-7.924,"1627752100",0],
-  ["Enxoé",37.98,-7.45,"1627752188",0], ["Ermida",40.7143,-8.353,"7554829608",0],
-  ["Fagilde",40.639,-7.783,"1627758608",0], ["Feiticeiro",41.2022,-7.093,"7554829602",1],
+  ["Capinha",40.212,-7.387,"1627743678",0], ["Caroucha",37.2535,-7.4879,"",0],
+  ["Carrapatelo",41.088,-8.126,"1627743682",0], ["Carril",39.6087,-8.3577,"",0],
+  ["Castelo do Bode",39.545,-8.323,"1627743896",0], ["Corgas",39.812,-7.912,"",0],
+  ["Corte Brique",37.609,-8.453,"1627751880",0], ["Cova do Viriato",40.309,-7.561,"1627751888",0],
+  ["Covão do Ferro",40.314,-7.595,"",0], ["Covão do Meio",40.334,-7.633,"",0],
+  ["Crestuma",41.074,-8.488,"1627751912",0], ["Daivões",41.5253,-7.8632,"9978398426",1],
+  ["Divôr",38.705,-7.924,"1627752100",0], ["Enxoé",37.98,-7.45,"1627752188",0],
+  ["Ermida",40.7143,-8.353,"7554829608",0], ["Escarigo",40.259,-7.286,"",0],
+  ["Esteveínha",41.369,-6.9557,"",1], ["Fagilde",40.639,-7.783,"1627758608",0],
+  ["Feiticeiro",41.2022,-7.093,"7554829602",1], ["Fonte Longa",41.305,-7.169,"",1],
   ["Fonte Serne",37.881,-8.497,"1627758624",0], ["Foz do Tua",41.2189,-7.4226,"9321904688",1],
   ["Fratel",39.531,-7.833,"1627758658",0], ["Fronhas",40.241,-8.157,"1627758668",0],
-  ["Funcho",37.274,-8.374,"1627758670",0], ["Gouvães",41.4938,-7.727,"10908513554",1],
-  ["Guilhofrei",41.585,-8.138,"1627758686",1], ["Idanha",39.946,-7.202,"1627758730",0],
-  ["Lagoa Comprida",40.364,-7.649,"1627758736",0], ["Lagoacho",40.386,-7.62,"1627758738",0],
-  ["Lucefécit",38.636,-7.406,"1627758752",0], ["Magos",38.998,-8.688,"1627758756",0],
-  ["Maranhão",39.015,-7.976,"1627758764",0], ["Meimoa",40.263,-7.151,"1627758774",0],
-  ["Minutos",38.659,-8.098,"1627758784",0], ["Miranda",41.484,-6.28,"1627758786",1],
-  ["Montargil",39.053,-8.175,"1627758816",0], ["Monte Gato",37.791,-8.237,"1627758830",0],
+  ["Funcho",37.274,-8.374,"1627758670",0], ["Gafete",39.395,-7.655,"",0],
+  ["Gouvães",41.4938,-7.727,"10908513554",1], ["Guilhofrei",41.585,-8.138,"1627758686",1],
+  ["Idanha",39.946,-7.202,"1627758730",0], ["Lagoa Comprida",40.364,-7.649,"1627758736",0],
+  ["Lagoacho",40.386,-7.62,"1627758738",0], ["Louçainha",40.024,-8.312,"",0],
+  ["Lucefécit",38.636,-7.406,"1627758752",0], ["Macieira",40.4367,-8.2647,"",0],
+  ["Magos",38.998,-8.688,"1627758756",0], ["Maranhão",39.015,-7.976,"1627758764",0],
+  ["Meimoa",40.263,-7.151,"1627758774",0], ["Minutos",38.659,-8.098,"1627758784",0],
+  ["Miranda",41.484,-6.28,"1627758786",1], ["Montargil",39.053,-8.175,"1627758816",0],
+  ["Monte Clérigo",37.497,-8.061,"",0], ["Monte Gato",37.791,-8.237,"1627758830",0],
   ["Monte Migueis",37.789,-8.265,"1627758832",0], ["Monte Novo",38.511,-7.71,"1627758834",0],
   ["Monte da Rocha",37.736,-8.294,"1627758846",0], ["Morgavél",37.898,-8.761,"1627758860",0],
-  ["Odeleite",37.331,-7.518,"1627758894",0], ["Odelouca",37.2869,-8.4711,"3507536920",0],
-  ["Odivelas",38.187,-8.121,"1627758906",0], ["Paradela",41.761,-7.957,"1627758928",1],
-  ["Picote",41.386,-6.374,"1627758968",1], ["Pocinho",41.1352,-7.1143,"1627758976",0],
+  ["Nascentes",39.326,-7.696,"",0], ["Negrelinho",39.508,-8.094,"",0],
+  ["Nossa Senhora do Desterro",40.401,-7.684,"",0], ["Odeleite",37.331,-7.518,"1627758894",0],
+  ["Odelouca",37.2869,-8.4711,"3507536920",0], ["Odivelas",38.187,-8.121,"1627758906",0],
+  ["Palameiro",41.176,-7.219,"",0], ["Paradela",41.761,-7.957,"1627758928",1],
+  ["Patudos",39.2476,-8.5895,"",0], ["Peneireiro",41.2954,-7.1742,"",1],
+  ["Penha Garcia",40.045,-7.015,"",0], ["Penide",41.5496,-8.5371,"",1],
+  ["Picote",41.386,-6.374,"1627758968",1], ["Pisco",40.019,-7.556,"",0],
+  ["Pocinho",41.1352,-7.1143,"1627758976",0], ["Poio",39.516,-7.583,"",0],
   ["Pracana",39.568,-7.816,"1627759292",0], ["Pêgo do Altar",38.419,-8.392,"1627758948",0],
-  ["Póvoa e Meadas",39.486,-7.557,"1627759290",0], ["Raiva",40.309,-8.251,"1627759328",0],
-  ["Ribeiradio",40.7422,-8.3194,"7554777512",0], ["Roxo",37.9296,-8.0819,"1627759368",0],
-  ["Régua",41.142,-7.708,"1627759340",0], ["Salamonde",41.689,-8.094,"1627759378",1],
-  ["Santa Clara",37.516,-8.44,"1627759384",0], ["Santa Luzia",40.09,-7.858,"1627759390",0],
+  ["Póvoa e Meadas",39.486,-7.557,"1627759290",0], ["Queimadela",41.503,-8.164,"",1],
+  ["Raiva",40.309,-8.251,"1627759328",0], ["Ranhados",41.008,-7.335,"",0],
+  ["Ribeiradio",40.7422,-8.3194,"7554777512",0], ["Rio da Mula",38.763,-9.419,"",0],
+  ["Roxo",37.9296,-8.0819,"1627759368",0], ["Régua",41.142,-7.708,"1627759340",0],
+  ["Sabugal",40.261,-7.143,"",0], ["Salamonde",41.689,-8.094,"1627759378",1],
+  ["Salgueiro",41.32,-7.06,"",1], ["Santa Clara",37.516,-8.44,"1627759384",0],
+  ["Santa Luzia",40.09,-7.858,"1627759390",0], ["Santa Maria de Aguiar",40.867,-6.893,"",0],
   ["Santa Águeda (Marateca)",39.969,-7.481,"1627759382",0], ["Serra Serrada",41.953,-6.779,"1627759434",1],
-  ["São Domingos",39.341,-9.314,"1627759402",0], ["Torrão",41.098,-8.262,"1627759468",0],
-  ["Touvedo",41.812,-8.349,"1627759476",1], ["Vale do Gaio",38.246,-8.297,"1627759492",0],
+  ["Sordo",41.285,-7.828,"",1], ["São Domingos",39.341,-9.314,"1627759402",0],
+  ["Tapada Grande",37.669,-7.507,"",0], ["Teja",40.97,-7.312,"",0],
+  ["Torrão",41.098,-8.262,"1627759468",0], ["Toulica",39.873,-7.076,"",0],
+  ["Touvedo",41.812,-8.349,"1627759476",1], ["Vale Covo",41.267,-7.016,"",1],
+  ["Vale Madeiro",41.4808,-7.0795,"",1], ["Vale do Gaio",38.246,-8.297,"1627759492",0],
   ["Vale do Rossim",40.4,-7.589,"1627759502",0], ["Valeira",41.167,-7.376,"1627759510",0],
-  ["Varosa",41.121,-7.775,"1627759512",0], ["Venda Nova",41.6812,-7.9848,"1627759522",1],
-  ["Venda Nova Frades",41.683,-7.99,"1627759524",1], ["Venda Nova Frades II",41.6946,-8.0228,"12303382358",1],
-  ["Vigia",38.538,-7.607,"1627759534",0], ["Vilar Tabuaço",40.987,-7.535,"1627759554",0],
-  ["Vilarinho das Furnas",41.759,-8.217,"1627759560",1]
+  ["Varosa",41.121,-7.775,"1627759512",0], ["Veiguinhas",41.9538,-6.8042,"",1],
+  ["Venda Nova",41.6812,-7.9848,"1627759522",1], ["Venda Nova Frades",41.683,-7.99,"1627759524",1],
+  ["Venda Nova Frades II",41.6946,-8.0228,"12303382358",1], ["Vigia",38.538,-7.607,"1627759534",0],
+  ["Vilar Ferreiro (Carviçais)",41.2,-6.88,"",0], ["Vilar Tabuaço",40.987,-7.535,"1627759554",0],
+  ["Vilarinho das Furnas",41.759,-8.217,"1627759560",1], ["Óbidos",39.3601,-9.1373,"",0]
 ];
 // Caixas de estuário/ria → default "estuario"
 const ESTUARIOS = [
@@ -2326,12 +2350,15 @@ function render() {
       <div class="empty-state">
         <span class="icon">🏞️</span>
         <h2>${esc(st.spot.name)} fica no interior</h2>
-        <p>Não é costa nem nenhuma albufeira que eu conheça, por isso não consigo calcular um score honesto aqui — não tenho dados de água para este ponto.</p>
-        <div class="log-actions" style="max-width:420px">
-          ${perto.map((p, i) => `<button class="log-btn${i ? " ghost" : " primary"}" data-alb="${i}">
-            Barragem de ${esc(p.a[0])} · ${Math.round(p.km)} km</button>`).join("")}
+        <p>Não é costa nem nenhuma albufeira das que conheço. Se vais pescar a uma barragem ou charca aqui perto que não esteja em lista nenhuma, escolhe a primeira opção — funciona tudo menos o nível da água.</p>
+        <div class="log-actions" style="max-width:440px">
+          <button class="log-btn primary" id="pescarAqui">🏞️ Pescar aqui mesmo (água interior)</button>
         </div>
-        <p style="font-size:12.5px">Ou procura uma praia, um molhe ou outra barragem em cima.</p>
+        <p style="font-size:12.5px;margin-top:2px">Ou uma albufeira conhecida perto:</p>
+        <div class="log-actions" style="max-width:440px">
+          ${perto.map((p) => `<button class="log-btn ghost" data-alb="${perto.indexOf(p)}">
+            ${esc(p.a[0])} · ${Math.round(p.km)} km</button>`).join("")}
+        </div>
       </div>`;
     st._albPerto = perto;
   }
@@ -2468,6 +2495,11 @@ function attach() {
     const p = st._albPerto[+b.getAttribute("data-alb")];
     selectSpot({ name: "Barragem de " + p.a[0], lat: p.a[1], lon: p.a[2], tipo: "albufeira" });
   }));
+  const pa = document.getElementById("pescarAqui");
+  if (pa) pa.addEventListener("click", () => {
+    st.shoreType = "albufeira";   // água interior sem nível conhecido
+    persist(); load();
+  });
   attachLog();
 }
 function reFocus(id) {
@@ -2771,7 +2803,7 @@ function load() {
   Promise.allSettled([
     fetchWx(st.spot.lat, st.spot.lon),
     doce ? Promise.resolve(null) : fetchSea(st.spot.lat, st.spot.lon),
-    alb ? fetchNivel(alb.a[3]) : Promise.resolve(null),
+    alb && alb.a[3] ? fetchNivel(alb.a[3]) : Promise.resolve(null),
   ]).then(([w, s, nv]) => {
     if (st.spot !== reqSpot) return; // o utilizador já mudou de sítio
     st.loading = false; st.busy = false;
