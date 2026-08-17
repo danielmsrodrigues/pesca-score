@@ -211,7 +211,8 @@
   .forecast-readout { display: flex; align-items: baseline; gap: 8px; font-size: 13px; color: var(--text-faint); min-height: 22px; }
   .forecast-readout b { font-size: 19px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
   .forecast-readout .verd { font-size: 12.5px; font-weight: 700; }
-  .forecast-wrap { position: relative; cursor: pointer; touch-action: pan-y; }
+  .forecast-wrap { position: relative; cursor: crosshair; touch-action: pan-y;
+    -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
   .forecast-grid { position: absolute; left: 0; right: 0; top: 0; height: 72px; pointer-events: none; }
   .forecast-grid span { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--border); opacity: .55; }
   .forecast-grid i { position: absolute; right: 0; top: -8px; font-size: 9.5px; font-style: normal; color: var(--text-faint); background: var(--bg); padding-left: 3px; }
@@ -225,6 +226,16 @@
   .forecast-labels .seg { flex: none; overflow: hidden; white-space: nowrap; border-left: 1px solid var(--border); padding-left: 4px; }
   .forecast-labels .seg:first-child { border-left: none; padding-left: 0; }
   .tipo-label { font-size: 12px; font-weight: 700; color: var(--text-faint); padding: 0 4px 0 8px; align-self: center; }
+  /* Com cinco tipos, a barra rebentava a largura do telemóvel. Abaixo dos
+     720px passa a grelha de duas linhas em vez de fila única. */
+  #tipoToggle { flex-wrap: wrap; }
+  #tipoToggle button { flex: 1 1 auto; min-width: 0; white-space: nowrap; }
+  @media (max-width: 720px) {
+    .chips-row { width: 100%; }
+    #tipoToggle { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; gap: 3px; }
+    #tipoToggle button { padding: 8px 4px; font-size: 12.5px; }
+    .tipo-label { padding: 0; width: 100%; }
+  }
   .map-slot { position: absolute; inset: 0; z-index: 0; }
   #leafletMap { position: absolute; inset: 0; background: var(--bg-elevated); }
   .map-caption, .map-hint, .map-coords, .map-expand { z-index: 800; }
@@ -742,67 +753,67 @@ const MESES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov"
    dev: "proibida" = não se pode devolver viva à água (espécie invasora)
         "livre" = pode devolver-se                                        */
 const ESPECIES_DOCE = [
-  { id:"achiga", n:"Achigã", min:20, defeso:[[3,16],[5,14]], tier:1, freq:67.6,
+  { id:"achiga", n:"Achigã", min:20, defeso:[[3,16],[5,14]], tier:1, val:1.0, freq:67.6,
     pk:[3,5,6,10,11], ok:[1,2,3,5,6,7,8,9,10,11,12], frio:0.25,
     hab:["mato submerso","pontas rochosas","braços abrigados"],
     diel:{dia:0.55,alba:1,cre:1,noite:0.5}, temp:[8,20,26,32], dev:"proibida",
     isco:"amostras (vinil, crankbait), lagostim artificial", curva:"achiga",
     zona:"junto a estrutura — árvores submersas, pedras, mato inundado; nos primeiros 3 m" },
-  { id:"carpa", n:"Carpa", min:null, defeso:null, tier:1, freq:70.3,
+  { id:"carpa", n:"Carpa", min:null, defeso:null, tier:1, val:0.85, val:0.85, freq:70.3,
     pk:[5,6,7,8,9], ok:[1,2,3,4,5,6,7,8,9,10,11,12], frio:0.6,
     hab:["fundos de lodo","zonas rasas","margens com vegetação"],
     diel:{dia:0.8,alba:1,cre:1,noite:0.85}, temp:[10,22,29,34], dev:"livre",
     isco:"milho, boilies, massa; engodo é essencial", curva:"carpa",
     zona:"fundo, em zonas rasas e quentes; procura bolhas à superfície" },
-  { id:"perca-sol", n:"Perca-sol", min:null, defeso:null, tier:1, freq:43.2,
+  { id:"perca-sol", n:"Perca-sol", min:null, defeso:null, tier:1, val:0.3, freq:43.2,
     pk:[5,6,7,8,9], ok:[3,4,5,6,7,8,9,10,11], frio:0,
     hab:["margens","vegetação","zonas rasas"],
     diel:{dia:1,alba:0.9,cre:0.9,noite:0.2}, temp:[12,22,28,33], dev:"proibida",
     isco:"minhoca, pequenas amostras", curva:"any",
     zona:"muito perto da margem, à boia — é a espécie que um iniciante apanha primeiro" },
-  { id:"barbo", n:"Barbo-comum", min:20, defeso:[[3,16],[6,14]], tier:1, freq:56.8,
+  { id:"barbo", n:"Barbo-comum", min:20, defeso:[[3,16],[6,14]], tier:1, val:0.7, freq:56.8,
     pk:[5,6,7,8,9], ok:[1,2,3,6,7,8,9,10,11,12], frio:0.7,
     hab:["fundos de areia e gravilha","zonas de corrente"],
     diel:{dia:0.7,alba:0.9,cre:1,noite:0.9}, temp:[10,18,26,32], dev:"livre",
     isco:"minhoca, milho, massa", curva:"any",
     zona:"fundo, em zonas de entrada de água e gravilha" },
-  { id:"boga", n:"Boga-comum", min:15, defeso:[[3,16],[6,14]], tier:1, freq:59.5,
+  { id:"boga", n:"Boga-comum", min:15, defeso:[[3,16],[6,14]], tier:1, val:0.5, freq:59.5,
     pk:[4,5,6,9,10], ok:[1,2,3,6,7,8,9,10,11,12], frio:0.8,
     hab:["fundos duros","zonas rasas"],
     diel:{dia:1,alba:0.9,cre:0.8,noite:0.3}, temp:[10,16,24,30], dev:"livre",
     isco:"massa, minhoca pequena", curva:"any",
     zona:"fundo em água pouco funda e limpa; anzol pequeno" },
-  { id:"lucioperca", n:"Lúcio-perca", min:null, defeso:null, tier:2, freq:null,
+  { id:"lucioperca", n:"Lúcio-perca", min:null, defeso:null, tier:2, val:1.0, freq:null,
     pk:[4,5,9,10,11], ok:[1,2,3,4,5,6,7,8,9,10,11,12], frio:0.5,
     hab:["taludes","zonas fundas","água turva"],
     diel:{dia:0.35,alba:1,cre:1,noite:0.95}, temp:[6,14,20,26], dev:"proibida",
     isco:"vinis, peixe morto", curva:"lucioperca", noturna:true,
     zona:"meia-água sobre fundos de 4-8 m, ao crepúsculo; gosta de água turva" },
-  { id:"siluro", n:"Siluro", min:null, defeso:null, tier:2, freq:null,
+  { id:"siluro", n:"Siluro", min:null, defeso:null, tier:2, val:0.9, val:0.9, freq:null,
     pk:[6,7,8,9], ok:[4,5,6,7,8,9,10], frio:0,
     hab:["fossas","zonas fundas","perto de estrutura"],
     diel:{dia:0.3,alba:0.7,cre:0.9,noite:1}, temp:[12,22,28,32], dev:"proibida",
     isco:"peixe morto, pellets grandes", curva:"any", noturna:true,
     zona:"fundo, nas zonas mais fundas; material forte — passa dos 2 m" },
-  { id:"alburno", n:"Alburno", min:null, defeso:null, tier:2, freq:null,
+  { id:"alburno", n:"Alburno", min:null, defeso:null, tier:2, val:0.25, freq:null,
     pk:[5,6,7,8,9], ok:[3,4,5,6,7,8,9,10,11], frio:0.4,
     hab:["superfície","zonas abertas"],
     diel:{dia:1,alba:0.9,cre:0.9,noite:0.2}, temp:[12,20,27,32], dev:"proibida",
     isco:"massa, mosca, larva", curva:"any",
     zona:"à superfície, à boia leve — pica quase sempre" },
-  { id:"pimpao", n:"Pimpão", min:null, defeso:null, tier:2, freq:32.4,
+  { id:"pimpao", n:"Pimpão", min:null, defeso:null, tier:2, val:0.3, val:0.3, freq:32.4,
     pk:[5,6,7,8,9], ok:[3,4,5,6,7,8,9,10,11], frio:0.5,
     hab:["fundos de lodo","zonas rasas"],
     diel:{dia:0.9,alba:1,cre:1,noite:0.5}, temp:[10,20,28,33], dev:"proibida",
     isco:"milho, massa, minhoca", curva:"any",
     zona:"fundo, em água rasa e parada" },
-  { id:"escalo", n:"Escalo", min:12, defeso:[[3,16],[6,14]], tier:2, freq:29.7,
+  { id:"escalo", n:"Escalo", min:12, defeso:[[3,16],[6,14]], tier:2, val:0.45, freq:29.7,
     pk:[4,5,6,9,10], ok:[1,2,3,6,7,8,9,10,11,12], frio:0.8,
     hab:["margens","zonas rasas"],
     diel:{dia:0.9,alba:1,cre:1,noite:0.4}, temp:[8,16,24,30], dev:"livre",
     isco:"minhoca, massa, mosca", curva:"any",
     zona:"perto da margem, à boia ou de fundo leve" },
-  { id:"truta", n:"Truta-de-rio", min:20, defeso:[[8,1],[2,28]], tier:2, freq:32.4,
+  { id:"truta", n:"Truta-de-rio", min:20, defeso:[[8,1],[2,28]], tier:2, val:1.0, freq:32.4,
     pk:[3,4,5,6], ok:[3,4,5,6,7], frio:1,
     hab:["água fria","zonas fundas no verão"],
     diel:{dia:0.7,alba:1,cre:1,noite:0.4}, temp:[4,10,18,22], dev:"livre",
@@ -1442,7 +1453,10 @@ function computeDoce(spot, wx, nivel, refNow) {
     const diel = anguloSolar(now, spot.lat, spot.lon) < -6 ? sp.diel.noite : sp.diel.dia;
     const tfit = tw ? interp(D.temp[sp.curva] || D.temp.any, tw.agora) : 0.6;
     const rfit = frio ? sp.frio : (1 - sp.frio * 0.3);
-    return { sp, suit: (sp.pk.includes(mes) ? 1 : 0.55) * diel * tfit * rfit };
+    // `val` = o quanto a espécie é procurada. Sem isto, perca-sol, alburno e
+    // pimpão — que picam em tudo o ano inteiro — empurravam o achigã para
+    // fora da lista, que é precisamente o peixe que se vai procurar.
+    return { sp, suit: (sp.pk.includes(mes) ? 1 : 0.72) * diel * tfit * rfit * (sp.val || 1) };
   }).sort((a, b) => b.suit - a.suit).slice(0, 5);
 
   const top = ranked[0] ? ranked[0].sp : null;
@@ -1922,7 +1936,7 @@ function renderWindows(vm) {
   const cur = vm.forecast[sel == null ? 0 : sel];
   const curV = verdictFor(cur.s);
   const curDia = diaLabel(cur.t.slice(0, 10), vm.forecast[0].t.slice(0, 10));
-  const readout = `<div class="forecast-readout">${sel == null ? "Agora" : esc(curDia) + ", " + hm(cur.t)} <b>${cur.s}</b><span class="verd" style="color:${curV.css}">${curV.label}</span>${sel == null ? '<span style="margin-left:auto;font-size:11.5px">toca no gráfico para ver outra hora</span>' : ""}</div>`;
+  const readout = `<div class="forecast-readout">${sel == null ? "Agora" : esc(curDia) + ", " + hm(cur.t)} <b>${cur.s}</b><span class="verd" style="color:${curV.css}">${curV.label}</span>${sel == null ? '<span style="margin-left:auto;font-size:11.5px">passa o rato ou arrasta o dedo</span>' : ""}</div>`;
   const grid = [75, 50, 25].map((g) => `<span style="top:${(100 - g) * 0.72}px"><i>${g}</i></span>`).join("");
   // marcas de hora de 6 em 6, alinhadas com as barras
   const hourTicks = vm.forecast.map((h, i) => ({ h, i })).filter((x) => +x.h.t.slice(11, 13) % 6 === 0)
@@ -2286,6 +2300,13 @@ function render() {
   // ainda não o fez — senão atropelava alterações feitas de propósito
   // (escolher uma sugestão, remover uma linha de captura).
   if (st.form && !st._synced) { try { syncForm(); } catch (e) {} }
+  // O overlay do mapa vive dentro do .layout e o CSS esconde tudo o resto
+  // enquanto está aberto. Num estado sem layout (interior, erro, a carregar)
+  // isso deixava o ecrã em branco — fecha-se o mapa em vez disso.
+  if (st.mapExpanded && (st.loading || st.error || !st.spot || !st.vm || st.shoreType === "interior")) {
+    st.mapExpanded = false;
+    document.body.classList.remove("map-open");
+  }
   let body = "";
   if (st.loading) body = renderLoading();
   else if (st.error && !st.vm) body = `
@@ -2366,16 +2387,41 @@ function attach() {
   if (ft) ft.addEventListener("click", () => { st.factorsOpen = !st.factorsOpen; render(); });
   const fw = document.getElementById("forecastWrap");
   if (fw) {
-    const pick = (e) => {
-      const r = fw.getBoundingClientRect();
-      const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
-      const n = st.vm.forecast.length;
-      const i = clamp(Math.floor(x / r.width * n), 0, n - 1);
-      if (i !== st.hoverHour) { st.hoverHour = i; render(); }
+    // Rato: basta passar por cima. Toque: arrasta-se com o dedo.
+    // Actualiza só o texto e a barra realçada — um render completo perdia o
+    // dedo a meio do arrasto e o browser desenhava selecção azul por cima.
+    const readout = fw.parentNode.querySelector(".forecast-readout");
+    const barras = fw.querySelectorAll(".forecast-bar .bar");
+    const grelha = fw.querySelector(".forecast-bar");
+    const pinta = (i) => {
+      if (i == null) {
+        grelha.classList.remove("has-sel");
+        barras.forEach((b) => b.classList.remove("sel"));
+      } else {
+        grelha.classList.add("has-sel");
+        barras.forEach((b, k) => b.classList.toggle("sel", k === i));
+      }
+      const h = st.vm.forecast[i == null ? 0 : i];
+      const v = verdictFor(h.s);
+      const dia = i == null ? "Agora" : esc(diaLabel(h.t.slice(0, 10), st.vm.forecast[0].t.slice(0, 10))) + ", " + hm(h.t);
+      readout.innerHTML = dia + " <b>" + h.s + "</b>" +
+        '<span class="verd" style="color:' + v.css + '">' + v.label + "</span>" +
+        (i == null ? '<span style="margin-left:auto;font-size:11.5px">passa o rato ou arrasta o dedo</span>' : "");
+      st.hoverHour = i;
     };
-    fw.addEventListener("pointerdown", pick);
-    fw.addEventListener("pointermove", (e) => { if (e.buttons || e.pointerType === "touch") pick(e); });
-    fw.addEventListener("pointerleave", () => { if (st.hoverHour != null) { st.hoverHour = null; render(); } });
+    const idx = (e) => {
+      const r = fw.getBoundingClientRect();
+      const n = st.vm.forecast.length;
+      return clamp(Math.floor((e.clientX - r.left) / r.width * n), 0, n - 1);
+    };
+    fw.addEventListener("pointermove", (e) => {
+      if (e.pointerType === "touch" && !e.isPrimary) return;
+      pinta(idx(e));
+    });
+    fw.addEventListener("pointerdown", (e) => { fw.setPointerCapture(e.pointerId); pinta(idx(e)); });
+    fw.addEventListener("pointerup", (e) => { try { fw.releasePointerCapture(e.pointerId); } catch (x) {} });
+    fw.addEventListener("pointerleave", () => pinta(null));
+    fw.addEventListener("pointercancel", () => pinta(null));
   }
   const vt = document.getElementById("windowsViewToggle");
   if (vt) vt.addEventListener("click", (e) => {
