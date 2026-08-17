@@ -672,6 +672,17 @@ function shoreTypeGuess(lat, lon) {
   for (const s of SPOTS) d = Math.min(d, distKm(lat, lon, s[1], s[2]));
   return d > 25 ? "interior" : "praia";
 }
+// Só se mostram os tipos que fazem sentido no local: oferecer "Albufeira"
+// numa praia (ou "Areal" a 60 km do mar) dava resultados sem sentido.
+function tiposValidos(lat, lon) {
+  let dCosta = 1e9;
+  for (const s of SPOTS) dCosta = Math.min(dCosta, distKm(lat, lon, s[1], s[2]));
+  const perto = albufeiraPerto(lat, lon);
+  const out = [];
+  if (dCosta <= 25) out.push("praia", "rochas", "paredao", "estuario");
+  if (perto || dCosta > 25) out.push("albufeira");
+  return out.length ? out : ["albufeira"];
+}
 // as 3 albufeiras mais próximas — para quem cai no interior
 function albufeirasProximas(lat, lon, n) {
   return ALBUFEIRAS.map((a) => ({ a, km: distKm(lat, lon, a[1], a[2]) }))
@@ -781,25 +792,25 @@ const ESPECIES_DOCE = [
     pk:[3,5,6,10,11], ok:[1,2,3,5,6,7,8,9,10,11,12], frio:0.25,
     hab:["mato submerso","pontas rochosas","braços abrigados"],
     diel:{dia:0.55,alba:1,cre:1,noite:0.5}, temp:[8,20,26,32], dev:"proibida",
-    isco:"amostras (vinil, crankbait), lagostim artificial", curva:"achiga",
+    isco:"amostras (vinil, crankbait), lagostim artificial", curva:"achiga", tec:"BOIA leve", montagem:"massa ou minhoca pequena, anzol 12-16, linha fina.", tec:"TEXAS RIG (vinil)", montagem:"vinil tipo minhoca ou creature + anzol offset 3/0-4/0 + chumbo bala de 5-10 g. Passa por dentro do mato e das pedras sem prender — por isso é o mais indicado para começar.",
     zona:"junto a estrutura — árvores submersas, pedras, mato inundado; nos primeiros 3 m" },
-  { id:"carpa", n:"Carpa", min:null, defeso:null, tier:1, val:0.85, val:0.85, freq:70.3,
+  { id:"carpa", n:"Carpa", min:null, defeso:null, tier:1, val:0.85, freq:70.3,
     pk:[5,6,7,8,9], ok:[1,2,3,4,5,6,7,8,9,10,11,12], frio:0.6,
     hab:["fundos de lodo","zonas rasas","margens com vegetação"],
     diel:{dia:0.8,alba:1,cre:1,noite:0.85}, temp:[10,22,29,34], dev:"livre",
-    isco:"milho, boilies, massa; engodo é essencial", curva:"carpa",
+    isco:"milho, boilies, massa; engodo é essencial", curva:"carpa", tec:"FUNDO (carpfishing)", montagem:"milho ou boilie em montagem de cabelo, chumbo de 60-100 g. O engodo é metade do trabalho.",
     zona:"fundo, em zonas rasas e quentes; procura bolhas à superfície" },
   { id:"perca-sol", n:"Perca-sol", min:null, defeso:null, tier:1, val:0.3, freq:43.2,
     pk:[5,6,7,8,9], ok:[3,4,5,6,7,8,9,10,11], frio:0,
     hab:["margens","vegetação","zonas rasas"],
     diel:{dia:1,alba:0.9,cre:0.9,noite:0.2}, temp:[12,22,28,33], dev:"proibida",
-    isco:"minhoca, pequenas amostras", curva:"any",
+    isco:"minhoca, pequenas amostras", curva:"any", tec:"BOIA", montagem:"minhoca pequena, anzol 10-12, a um palmo do fundo.",
     zona:"muito perto da margem, à boia — é a espécie que um iniciante apanha primeiro" },
   { id:"barbo", n:"Barbo-comum", min:20, defeso:[[3,16],[6,14]], tier:1, val:0.7, freq:56.8,
     pk:[5,6,7,8,9], ok:[1,2,3,6,7,8,9,10,11,12], frio:0.7,
     hab:["fundos de areia e gravilha","zonas de corrente"],
     diel:{dia:0.7,alba:0.9,cre:1,noite:0.9}, temp:[10,18,26,32], dev:"livre",
-    isco:"minhoca, milho, massa", curva:"any",
+    isco:"minhoca, milho, massa", curva:"any", tec:"FUNDO leve", montagem:"minhoca ou milho, chumbo corrido de 20-40 g, anzol 6-8.",
     zona:"fundo, em zonas de entrada de água e gravilha" },
   { id:"boga", n:"Boga-comum", min:15, defeso:[[3,16],[6,14]], tier:1, val:0.5, freq:59.5,
     pk:[4,5,6,9,10], ok:[1,2,3,6,7,8,9,10,11,12], frio:0.8,
@@ -811,37 +822,37 @@ const ESPECIES_DOCE = [
     pk:[4,5,9,10,11], ok:[1,2,3,4,5,6,7,8,9,10,11,12], frio:0.5,
     hab:["taludes","zonas fundas","água turva"],
     diel:{dia:0.35,alba:1,cre:1,noite:0.95}, temp:[6,14,20,26], dev:"proibida",
-    isco:"vinis, peixe morto", curva:"lucioperca", noturna:true,
+    isco:"vinis, peixe morto", curva:"lucioperca", tec:"VINIL em cabeça plombada", montagem:"shad de 8-12 cm em jig head de 10-20 g, recolha lenta junto ao fundo.", noturna:true,
     zona:"meia-água sobre fundos de 4-8 m, ao crepúsculo; gosta de água turva" },
-  { id:"siluro", n:"Siluro", min:null, defeso:null, tier:2, val:0.9, val:0.9, freq:null,
+  { id:"siluro", n:"Siluro", min:null, defeso:null, tier:2, val:0.9, freq:null,
     pk:[6,7,8,9], ok:[4,5,6,7,8,9,10], frio:0,
     hab:["fossas","zonas fundas","perto de estrutura"],
     diel:{dia:0.3,alba:0.7,cre:0.9,noite:1}, temp:[12,22,28,32], dev:"proibida",
-    isco:"peixe morto, pellets grandes", curva:"any", noturna:true,
+    isco:"peixe morto, pellets grandes", curva:"any", tec:"FUNDO com material forte", montagem:"peixe morto ou pellets grandes, anzol 6/0, linha de 0,50 mm.", noturna:true,
     zona:"fundo, nas zonas mais fundas; material forte — passa dos 2 m" },
   { id:"alburno", n:"Alburno", min:null, defeso:null, tier:2, val:0.25, freq:null,
     pk:[5,6,7,8,9], ok:[3,4,5,6,7,8,9,10,11], frio:0.4,
     hab:["superfície","zonas abertas"],
     diel:{dia:1,alba:0.9,cre:0.9,noite:0.2}, temp:[12,20,27,32], dev:"proibida",
-    isco:"massa, mosca, larva", curva:"any",
+    isco:"massa, mosca, larva", curva:"any", tec:"BOIA à superfície", montagem:"massa ou larva, anzol 16-18, linha muito fina.",
     zona:"à superfície, à boia leve — pica quase sempre" },
-  { id:"pimpao", n:"Pimpão", min:null, defeso:null, tier:2, val:0.3, val:0.3, freq:32.4,
+  { id:"pimpao", n:"Pimpão", min:null, defeso:null, tier:2, val:0.3, freq:32.4,
     pk:[5,6,7,8,9], ok:[3,4,5,6,7,8,9,10,11], frio:0.5,
     hab:["fundos de lodo","zonas rasas"],
     diel:{dia:0.9,alba:1,cre:1,noite:0.5}, temp:[10,20,28,33], dev:"proibida",
-    isco:"milho, massa, minhoca", curva:"any",
+    isco:"milho, massa, minhoca", curva:"any", tec:"FUNDO leve", montagem:"milho ou massa, anzol 8-12.",
     zona:"fundo, em água rasa e parada" },
   { id:"escalo", n:"Escalo", min:12, defeso:[[3,16],[6,14]], tier:2, val:0.45, freq:29.7,
     pk:[4,5,6,9,10], ok:[1,2,3,6,7,8,9,10,11,12], frio:0.8,
     hab:["margens","zonas rasas"],
     diel:{dia:0.9,alba:1,cre:1,noite:0.4}, temp:[8,16,24,30], dev:"livre",
-    isco:"minhoca, massa, mosca", curva:"any",
+    isco:"minhoca, massa, mosca", curva:"any", tec:"BOIA leve", montagem:"minhoca ou massa, anzol 10-14, junto à margem.",
     zona:"perto da margem, à boia ou de fundo leve" },
   { id:"truta", n:"Truta-de-rio", min:20, defeso:[[8,1],[2,28]], tier:2, val:1.0, freq:32.4,
     pk:[3,4,5,6], ok:[3,4,5,6,7], frio:1,
     hab:["água fria","zonas fundas no verão"],
     diel:{dia:0.7,alba:1,cre:1,noite:0.4}, temp:[4,10,18,22], dev:"livre",
-    isco:"amostras pequenas, minhoca", curva:"truta",
+    isco:"amostras pequenas, minhoca", curva:"truta", tec:"AMOSTRAS pequenas", montagem:"colheres de 3-7 g ou vinis pequenos; em alternativa, minhoca com boia leve.",
     zona:"só nas albufeiras frias do norte; época de 1 de março a 31 de julho" },
 ];
 
@@ -1483,16 +1494,23 @@ function computeDoce(spot, wx, nivel, refNow) {
     return { sp, suit: (sp.pk.includes(mes) ? 1 : 0.72) * diel * tfit * rfit * (sp.val || 1) };
   }).sort((a, b) => b.suit - a.suit).slice(0, 5);
 
-  const top = ranked[0] ? ranked[0].sp : null;
+  // A técnica segue a espécie que se PROCURA, não a mais abundante: entre as
+  // três primeiras, escolhe-se a de maior valor desportivo. Senão, num dia de
+  // Verão a carpa mandava sempre e o achigã — o motivo da viagem — não
+  // chegava a ter montagem recomendada.
+  const alvo = ranked.slice(0, 3).sort((a, b) => (b.sp.val || 1) - (a.sp.val || 1))[0];
+  const top = alvo ? alvo.sp : null;
   const tech = top ? {
-    name: top.tec || (top.id === "achiga" || top.id === "lucioperca" ? "AMOSTRAS (spinning)" : "FUNDO / BOIA"),
-    icon: top.id === "achiga" || top.id === "lucioperca" ? "🎣" : "⚓",
-    why: "Melhor aposta agora: " + top.n.toLowerCase() + ".",
+    name: top.tec || "FUNDO / BOIA",
+    icon: top.val >= 0.9 ? "🎣" : "⚓",
+    why: "Para " + top.n.toLowerCase() + ", a aposta com melhor relação entre resultado e dificuldade.",
     tips: [
+      top.montagem ? "<b>Montagem:</b> " + top.montagem : "",
       "<b>Isco:</b> " + top.isco + ".",
       "<b>Onde:</b> " + top.zona + ".",
+      top.id === "achiga"
+        ? "<b>Cor do vinil:</b> em Portugal o achigã come sobretudo lagostim e perca-sol (estudo em quatro albufeiras do sul) — vinis com perfil e cor de lagostim são a escolha segura." : "",
       tw ? "<b>Água estimada:</b> " + tw.agora.toFixed(1) + " °C (calculada a partir do ar, ±1-2 °C)." : "",
-      "<b>Licença:</b> pesca lúdica em águas interiores (ICNF) — é diferente da do mar.",
     ].filter(Boolean),
   } : { name: "—", icon: "🎣", why: "Sem espécies em época.", tips: [] };
 
@@ -1840,7 +1858,9 @@ function searchWidget() {
     </div>`;
 }
 function renderSearch() {
-  const tipoBtns = TIPOS.map(([k, l]) => `<button data-tipo="${k}" class="${st.shoreType === k ? "active" : ""}">${l}</button>`).join("");
+  const validos = st.spot ? tiposValidos(st.spot.lat, st.spot.lon) : TIPOS.map((t) => t[0]);
+  const tipoBtns = TIPOS.filter(([k]) => validos.includes(k))
+    .map(([k, l]) => `<button data-tipo="${k}" class="${st.shoreType === k ? "active" : ""}">${l}</button>`).join("");
   const geoBtn = `<button class="saved-chip" id="geoBtn" title="Usar a minha localização" style="cursor:pointer">📍 ${st.geoBusy ? "A localizar…" : "Perto de mim"}</button>`;
   return `
     <header class="header">
@@ -2048,7 +2068,9 @@ function renderSpecies(vm) {
     <section class="section">
       <h2 class="section-title">Espécies prováveis</h2>
       <div class="species-list">${vm.species.map((s) => `<span class="species-chip">${esc(s.n)}${s.min ? `<span class="sz">≥${s.min} cm</span>` : ""}</span>`).join("")}</div>
-      <p class="species-note">Tamanhos mínimos legais (DGRM). Abaixo disso, devolve à água. Licença de pesca apeada: 2 €/dia ou 8 €/ano no Multibanco.</p>
+      <p class="species-note">${vm.doce
+        ? "Tamanhos mínimos legais (ICNF, águas interiores). A licença é a de <b>pesca lúdica em águas interiores</b> — a do mar não serve. Espécies exóticas não podem ser devolvidas vivas à água."
+        : "Tamanhos mínimos legais (DGRM). Abaixo disso, devolve à água. Licença de pesca apeada: 2 €/dia ou 8 €/ano no Multibanco."}</p>
     </section>`;
 }
 // Catmull-Rom → Bézier, para a curva sair suave a partir de pontos horários
