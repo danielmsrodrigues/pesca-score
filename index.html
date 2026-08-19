@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Score de Pesca</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -67,7 +71,7 @@
 
   .header { display: flex; flex-direction: column; gap: 10px; padding-top: 6px; }
   .brand { display: flex; align-items: center; gap: 8px; }
-  .brand-icon { font-size: 22px; line-height: 1; }
+  .brand-logo { flex: none; width: 30px; height: 30px; display: block; }
   .brand-name { font-size: 15px; font-weight: 700; letter-spacing: 0.01em; color: var(--text-dim); }
 
   .search-wrap { position: relative; }
@@ -366,6 +370,7 @@
   .footer { text-align: center; color: var(--text-faint); font-size: 12px; padding: 8px 4px 0; line-height: 1.6; }
   .empty-state, .error-state { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding: 40px 20px; color: var(--text-dim); }
   .empty-state .icon, .error-state .icon { font-size: 36px; }
+  .empty-state .logo { width: 68px; height: 68px; opacity: 0.95; }
   .empty-state h2, .error-state h2 { font-size: 17px; margin: 0; color: var(--text); }
   .empty-state p, .error-state p { font-size: 14px; margin: 0; color: var(--text-faint); max-width: 34ch; }
   .retry-btn { border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text); border-radius: 12px; padding: 10px 18px; font-size: 14px; font-weight: 600; cursor: pointer; min-height: 44px; }
@@ -1864,7 +1869,7 @@ function renderSearch() {
   const geoBtn = `<button class="saved-chip" id="geoBtn" title="Usar a minha localização" style="cursor:pointer">📍 ${st.geoBusy ? "A localizar…" : "Perto de mim"}</button>`;
   return `
     <header class="header">
-      <div class="brand"><span class="brand-icon">🎣</span><span class="brand-name">Score de Pesca</span></div>
+      <div class="brand"><img class="brand-logo" src="assets/logo.png" alt="" width="30" height="30"><span class="brand-name">Score de Pesca</span></div>
       ${st.mapExpanded ? "" : searchWidget()}
       <div class="chips-row">
         ${st.spot ? `<div class="saved-chip"><span class="dot"></span>${esc(st.spot.name)}</div>` : ""}
@@ -2363,7 +2368,7 @@ function render() {
     </div>`;
   else if (!st.spot) body = `
     <div class="empty-state">
-      <span class="icon">🎣</span><h2>Escolhe um pesqueiro</h2>
+      <img class="logo" src="assets/logo.png" alt="" width="68" height="68"><h2>Escolhe um pesqueiro</h2>
       <p>Procura uma praia, molhe, vila costeira ou barragem em cima, ou toca no mapa.</p>
     </div>`;
   else if (st.shoreType === "interior") {
