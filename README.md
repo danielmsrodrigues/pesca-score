@@ -59,6 +59,9 @@ Para quem vem ver o que este projeto demonstra, em 60 segundos:
 - **Score 0-100 por hora**, para as próximas 48 h, com as **melhores janelas**
   destacadas (aparadas a 5 h — uma "melhor janela" de 18 h não diz a ninguém
   quando ir)
+- **Vista da semana**: 7 dias com o melhor score de cada um; tocar num dia
+  mostra o gráfico hora a hora desse dia e as melhores janelas, para planear
+  com antecedência (abre no melhor dia)
 - **Mapa** (Leaflet, com camadas OpenStreetMap/CARTO e satélite Esri) que
   mostra o score de cada pesqueiro visível — os pontos no ecrã são pedidos ao
   Open-Meteo **numa única chamada em lote**
@@ -80,7 +83,8 @@ classificados como areal, rochas, paredão ou estuário):
 - **Aviso de segurança** com os limiares dos editais das capitanias: índice de
   rebentação `D = √Hs × Tp`, altura máxima esperada (~1,9×Hs), interdição
   legal de molhes/falésias com aviso amarelo IPMA, afastamento de arribas
-  (DL 159/2012). O gate de segurança **vence sempre** o score
+  (DL 159/2012). O aviso é só aviso: não baixa o score — o score diz se o
+  peixe está a comer, e se o mar está para lá ir decides tu ao chegar
 - Fora da lista, qualquer ponto na costa funciona: o tipo de pesqueiro é
   adivinhado pela posição (12 caixas de estuário conhecidas, resto por costa)
 
@@ -118,7 +122,8 @@ O fluxo de um cálculo:
 3. Em albufeira, pede o nível a `/api/albufeira?site=<id SNIRH>`.
 4. O motor respetivo (`computeAll` para mar, `computeDoce` para doce) calcula
    sub-scores por fator, combina-os com os pesos do tipo de local, aplica
-   multiplicadores (afloramento, aclimatação) e, no mar, o gate de segurança.
+   multiplicadores (afloramento, aclimatação, mar impescável). No mar, o nível de segurança é
+   calculado à parte e só aparece como aviso.
 5. Se faltar uma fonte (SNIRH em baixo, marítimo indisponível), o score sai à
    mesma com os pesos renormalizados e **marcado como parcial** na UI.
 
