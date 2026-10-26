@@ -28,7 +28,8 @@ competição da FPPD (2022-2026) cruzadas com o hindcast de ondulação**.
 | Água (curva térmica × défice aclim.) | 16 | 15 | 15 | 14 |
 | Pressão (tendência 24h, comprimida) | 4 | 4 | 4 | 4 |
 
-`score = Σ(w·sub) × mult_afloramento`, depois gate de segurança (caps).
+`score = Σ(w·sub) × mult_afloramento × mult_impescável`. A segurança não entra
+no score.
 
 ## Curvas (resumo; números completos no CFG do index.html)
 
@@ -51,14 +52,24 @@ competição da FPPD (2022-2026) cruzadas com o hindcast de ondulação**.
   aclimatação: SST vs média 10 dias, −3 °C → ×0.72, −5 °C → ×0.50.
 - **Afloramento** (só costa oeste): ARM = ≥60% das últimas 24h com vento N/NW
   e média ≥20 km/h; ATIVO se ΔSST(72h) ≤ −1.0 °C → ×0.72; FORTE ≤ −2.5 → ×0.55.
+- **Mar impescável**: acima do topo do trapézio o fator Mar já é 0, mas pesa só
+  25-30%, e 7 m de mar davam 66. Multiplicador por Hs: areal/estuário
+  3.0 m ×1 → 4.5 m ×0.40 → 6.0 m ×0.15; rochas/paredão 2.2 → 3.3 → 4.4.
+  Não é segurança: com mar assim a chumbada não segura e o isco não fica.
 - **Pressão**: Δp24 principal (75%) + Δp3 (25%), saída 25-75. Pico +62 em
   −7 hPa/24h; queda forte (≤−20) = 25 (temporal).
 
-## Gate de segurança (aplicado no fim, vence sempre)
+## Avisos de segurança (à parte do score)
+
+Até à v1 a segurança cortava o score (amarelo ×0.85, laranja máx. 40,
+vermelho máx. 15). Deixou de cortar: o score mede se o peixe come, e quem
+está na praia vê o mar. O mar grande já pesa pelo próprio fator Mar (o
+trapézio de Hs cai a 0 aos 3 m no areal) e, daí para cima, pelo multiplicador
+de mar impescável. Os níveis abaixo só geram o aviso.
 
 Índice de rebentação **D = √Hs × Tp** (validado: Meco 2013 → D=26):
-D<11 verde · 11-16 amarelo (×0.85 + aviso) · 16-22 laranja (cap 40; rochas/
-paredão "não recomendado") · ≥22 vermelho (cap 15, "NÃO IR").
+D<11 verde · 11-16 amarelo · 16-22 laranja (rochas/paredão "não
+recomendado") · ≥22 vermelho ("NÃO vás para rochas, molhes ou zonas expostas").
 Absolutos: areal amarelo ≥1.5 m / laranja ≥2.5 / vermelho ≥4.0; rochas e
 paredão 1.0 / 1.5 / 2.5. Tp ≥15 s → mínimo amarelo. Rajadas ≥70 km/h →
 vermelho (equivale a aviso amarelo IPMA: editais das capitanias **interditam
