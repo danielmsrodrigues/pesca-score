@@ -2482,9 +2482,14 @@ function attach() {
   if (tipo) tipo.addEventListener("click", (e) => {
     const b = e.target.closest("button[data-tipo]");
     if (!b) return;
+    const antes = st.shoreType;
     st.shoreType = b.getAttribute("data-tipo");
     persist();
-    if (st.raw) { st.vm = computeAll(st.spot, st.shoreType, st.raw.wx, st.raw.sea); render(); }
+    // mar ↔ albufeira troca de motor e de dados (o mar não traz nível, a
+    // albufeira não traz ondulação): recalcular com o que há rebentava
+    const mudaMotor = antes === "interior" || (antes === "albufeira") !== (st.shoreType === "albufeira");
+    if (mudaMotor) load();
+    else if (st.raw) { st.vm = computeAll(st.spot, st.shoreType, st.raw.wx, st.raw.sea); render(); }
     else render();
   });
   const ft = document.getElementById("factorsToggle");
