@@ -59,6 +59,9 @@ Para quem vem ver o que este projeto demonstra, em 60 segundos:
 - **Score 0-100 por hora**, para as próximas 48 h, com as **melhores janelas**
   destacadas (aparadas a 5 h — uma "melhor janela" de 18 h não diz a ninguém
   quando ir)
+- **Vista da semana**: 7 dias com o melhor score de cada um; tocar num dia
+  mostra o gráfico hora a hora desse dia e as melhores janelas, para planear
+  com antecedência (abre no melhor dia)
 - **Mapa** (Leaflet, com camadas OpenStreetMap/CARTO e satélite Esri) que
   mostra o score de cada pesqueiro visível — os pontos no ecrã são pedidos ao
   Open-Meteo **numa única chamada em lote**
